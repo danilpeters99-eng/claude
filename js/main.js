@@ -1,172 +1,230 @@
-/* ─────────────────────────────────────────────────────────
-   Glasfaser · Lichtgeschwindigkeit
-   3D-Szene (three.js) + Scroll-Choreografie (GSAP) + Interaktion
-   ───────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   Glasfaser für Teach:In — interaktives Plakat
+   3D-Netzraum (three.js) · Klickpunkte im Raum · Popup-Inhalte
+   ═══════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var lerp = function (a, b, t) { return a + (b - a) * t; };
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var smooth = function (t) { return t * t * (3 - 2 * t); };
+  var de = function (n, d) { return n.toFixed(d).replace(".", ","); };
 
-  /* ═══════════════ 1 · GLOSSAR ═══════════════ */
-  var GLOSSAR = [
-    ["LWL", "Lichtwellenleiter – der Fachbegriff für das Glasfaserkabel: ein Leiter, in dem Licht statt Strom das Signal trägt."],
-    ["FTTH", "Fiber to the Home – die Glasfaser endet in der Wohnung bzw. im Büro. Volle Leistung, kein Kupfer auf der letzten Meile."],
-    ["FTTB / FTTC", "Fiber to the Building / to the Curb – das Glas endet im Keller bzw. am Kabelverzweiger; der Rest läuft über Kupfer (Ethernet, VDSL)."],
-    ["ONT", "Optical Network Termination – das Glasfaser-Modem beim Kunden. Wandelt elektrische Signale in Licht und zurück."],
-    ["OLT", "Optical Line Termination – die Gegenstelle im PoP des Anbieters, an der viele hundert ONTs zusammenlaufen."],
-    ["PON", "Passive Optical Network – eine Faser wird mit stromlosen Splittern auf 32–128 Teilnehmer aufgeteilt. Standard beim FTTH-Massenausbau."],
-    ["P2P / AON", "Punkt-zu-Punkt bzw. Active Optical Network – jeder Kunde bekommt eine eigene Faser mit garantierter Bandbreite. Typisch für Standleitungen."],
-    ["Splitter", "Passiver Glaskörper, der ein optisches Signal auf mehrere Fasern aufteilt – ohne Strom und ohne Elektronik."],
-    ["Gf-AP / APL", "Glasfaser-Abschlusspunkt bzw. Abschlusspunkt Linientechnik – die Übergabedose im Keller, an der das Netz des Anbieters endet."],
-    ["Singlemode", "Faser mit 9 µm Kern: Es passt nur ein Lichtweg hinein, dadurch keine Modendispersion und Reichweiten bis 80 km. Standard für FTTH."],
-    ["Multimode", "Faser mit 50 µm Kern: viele Lichtwege gleichzeitig, billigere Sender, aber nur bis ca. 550 m. Typisch für Gebäudeverkabelung."],
-    ["Totalreflexion", "Trifft Licht flach genug auf die Grenze zwischen dichterem Kern und dünnerem Mantel, wird es vollständig zurückgeworfen – so bleibt es im Kern."],
-    ["Brechzahl (n)", "Maß dafür, wie stark ein Material Licht bremst. Kern n ≈ 1,48, Mantel n ≈ 1,46 – dieser kleine Unterschied genügt für die Totalreflexion."],
-    ["Dämpfung", "Signalverlust in dB pro km. Glasfaser: ca. 0,2 dB/km bei 1550 nm – nach 10 km sind noch rund 63 % der Leistung übrig."],
-    ["nm / Wellenlänge", "Nanometer, das „Farbmaß“ des Lichts. 1310 nm und 1550 nm sind Infrarot – unsichtbar, aber besonders verlustarm im Glas."],
-    ["DWDM", "Dense Wavelength Division Multiplexing – bis zu 96 Wellenlängen („Farben“) teilen sich eine Faser, jede mit eigener Datenrate."],
-    ["TDMA", "Time Division Multiple Access – im PON-Upstream bekommt jedes ONT feste Zeitschlitze zugewiesen, damit sich die Signale nicht überlagern."],
-    ["NRZ / OOK", "On-Off-Keying: Licht an = 1, Licht aus = 0. Das einfachste optische Modulationsverfahren, genutzt bis 10 Gbit/s."],
-    ["PAM4", "Vier Helligkeitsstufen statt zwei – pro Symbol werden 2 Bit übertragen, die Datenrate verdoppelt sich bei gleicher Symbolrate."],
-    ["XGS-PON", "PON-Generation mit symmetrisch 10 Gbit/s. Löst GPON (2,5/1,25 Gbit/s) beim Ausbau schrittweise ab."],
-    ["Symmetrisch", "Upload genauso schnell wie Download – der große Vorteil gegenüber DSL und Kabel, wichtig für Backups und Videokonferenzen."],
-    ["Latenz", "Signallaufzeit. Im Glas ca. 5 µs pro Kilometer; ein FTTH-Anschluss liegt bei 1–5 ms, Satellit (GEO) dagegen bei 600 ms."],
-    ["Spleißen", "Dauerhaftes Verschweißen zweier Fasern mit einem Lichtbogen. Verlust unter 0,1 dB, braucht ein Spleißgerät und saubere Schnitte."],
-    ["Homes Passed", "Adressen, an denen Glasfaser bis vor die Tür liegt – noch ohne Vertrag. Die Kennzahl für den Ausbaustand."],
-    ["Take-up-Rate", "Anteil der erschlossenen Haushalte, die tatsächlich einen Glasfaservertrag gebucht haben. In Deutschland rund 27 %."],
-    ["BKZ", "Baukostenzuschuss – einmalige Beteiligung an den Tiefbaukosten, wenn ein Anschluss außerhalb der regulären Ausbauphase gelegt wird."]
+  /* ════════ STATIONEN IM RAUM ════════ */
+  var STATIONS = [
+    { key: "ont",      t: 0.12, side: -1, color: 0x2EE6FF, hex: "#2EE6FF", name: "Router + ONT",  sub: "Teach:In · 0 m" },
+    { key: "gfap",     t: 0.27, side:  1, color: 0x5CF2A6, hex: "#5CF2A6", name: "Gf-AP",         sub: "Hausanschluss · 20 m" },
+    { key: "nvt",      t: 0.43, side: -1, color: 0x8AA4FF, hex: "#8AA4FF", name: "Netzverteiler", sub: "Gehweg · 300 m" },
+    { key: "splitter", t: 0.58, side:  1, color: 0xFF4FB0, hex: "#FF4FB0", name: "Splitter",      sub: "passiv 1:32 · 2 km" },
+    { key: "olt",      t: 0.75, side: -1, color: 0xFFB43C, hex: "#FFB43C", name: "PoP mit OLT",   sub: "Vermittlung · 12 km" },
+    { key: "backbone", t: 0.93, side:  1, color: 0xFF7A59, hex: "#FF7A59", name: "Backbone",      sub: "DE-CIX · 20 km+" }
   ];
 
-  var glossaryEl = document.getElementById("glossary");
-  if (glossaryEl) {
-    GLOSSAR.forEach(function (g) {
-      var d = document.createElement("div");
-      var dt = document.createElement("dt"); dt.textContent = g[0];
-      var dd = document.createElement("dd"); dd.textContent = g[1];
-      d.appendChild(dt); d.appendChild(dd); glossaryEl.appendChild(d);
-    });
-  }
-
-  var POP = {
-    ftth: 1, ont: 3, olt: 4, pon: 5, dwdm: 15, totalreflexion: 11, gfap: 8
+  var MODALS = {
+    ont:            ["Station 01 · Kundenseite", "Router und ONT"],
+    gfap:           ["Station 02 · Gebäude", "Der Hausanschluss"],
+    nvt:            ["Station 03 · Verteilnetz", "Der Netzverteiler"],
+    splitter:       ["Station 04 · Verteilnetz", "Der passive Splitter"],
+    olt:            ["Station 05 · Vermittlung", "PoP mit OLT"],
+    backbone:       ["Station 06 · Weitverkehr", "Backbone und DWDM"],
+    medium:         ["01 · Medium", "Ein Haar aus Glas"],
+    varianten:      ["02 · Varianten", "Wie weit reicht das Glas?"],
+    technik:        ["03 · Funktionsweise", "Licht, das nicht entkommt"],
+    zahlen:         ["04 · Kennzahlen", "Raten, Frequenzen, Bandbreiten"],
+    bilanz:         ["05 · Bewertung", "Vor- und Nachteile"],
+    verfuegbarkeit: ["06 · Verfügbarkeit", "Wo liegt schon Glas?"],
+    kosten:         ["07 · Kosten", "Was kostet der Anschluss?"],
+    rechner:        ["08 · Interaktiv", "Wie lange dauert die Übertragung?"],
+    quiz:           ["09 · Plenum", "Kurzes Quiz"],
+    glossar:        ["10 · Glossar", "Grundbegriffe"],
+    quellen:        ["Belege", "Quellen und Stand"]
   };
-  var pop = document.getElementById("gpop");
-  var popTitle = document.getElementById("gpopTitle");
-  var popText = document.getElementById("gpopText");
-  var popOpener = null;
 
-  function showPop(btn) {
-    var idx = POP[btn.dataset.g];
-    if (idx === undefined) return;
-    popTitle.textContent = GLOSSAR[idx][0];
-    popText.textContent = GLOSSAR[idx][1];
-    pop.hidden = false;
-    var r = btn.getBoundingClientRect();
-    var w = Math.min(320, window.innerWidth - 32);
-    pop.style.width = w + "px";
-    var left = clamp(r.left, 16, window.innerWidth - w - 16);
-    var top = r.bottom + 10;
-    if (top + pop.offsetHeight > window.innerHeight - 16) top = Math.max(16, r.top - pop.offsetHeight - 10);
-    pop.style.left = left + "px";
-    pop.style.top = top + "px";
-    popOpener = btn;
-  }
-  function hidePop() { pop.hidden = true; popOpener = null; }
+  var stage = 0, modalOpen = false;
 
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest(".gl");
-    if (btn) { e.preventDefault(); (popOpener === btn) ? hidePop() : showPop(btn); return; }
-    if (!e.target.closest("#gpop")) hidePop();
-  });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") hidePop(); });
-  window.addEventListener("scroll", function () { if (popOpener) hidePop(); }, { passive: true });
-
-  /* ═══════════════ 2 · 3D-SZENE ═══════════════ */
-  var view = {
-    camZ: 7, camY: 0, rotZ: -0.38, rotY: 0, posX: 0, posY: 0,
-    peel: 0, glow: 1, spin: 0.0016, visible: 1
-  };
-  var target = Object.assign({}, view);
+  /* ════════ 3D-RAUM ════════ */
+  var cam = { z: 11, y: 0.3, pitch: 0 };
   var scene3d = null;
 
-  function build3D() {
-    var canvas = document.getElementById("fiber3d");
+  function buildRoom() {
+    var canvas = document.getElementById("scene");
     if (!canvas || typeof THREE === "undefined") return null;
 
     var renderer;
     try {
-      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-    } catch (err) { return null; }
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+    } catch (e) { return null; }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x04060f, 1);
 
     var scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x050814, 0.035);
+    scene.fog = new THREE.FogExp2(0x04060f, 0.0165);
 
-    var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
-    camera.position.set(0, 0, 7);
+    var camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 600);
+    camera.position.set(0, 0.3, 11);
 
-    scene.add(new THREE.AmbientLight(0x4a6ba8, 0.55));
-    var key = new THREE.PointLight(0x2ee6ff, 90, 60); key.position.set(-6, 5, 8); scene.add(key);
-    var rim = new THREE.PointLight(0xff4fb0, 70, 60); rim.position.set(7, -4, 5); scene.add(rim);
-    var warm = new THREE.PointLight(0xffb43c, 40, 50); warm.position.set(0, 6, -6); scene.add(warm);
+    /* — Raumbegrenzung: Boden, Decke, zwei Wände — */
+    function grid(size, div, c1, c2, op) {
+      var g = new THREE.GridHelper(size, div, c1, c2);
+      g.material.transparent = true;
+      g.material.opacity = op;
+      g.material.depthWrite = false;
+      return g;
+    }
+    var FLOOR_Y = -3.4, CEIL_Y = 5.6, WALL_X = 13.5, ROOM_Z = -110;
 
-    var group = new THREE.Group();
-    scene.add(group);
+    var floor = grid(280, 70, 0x2EE6FF, 0x16325c, 0.34);
+    floor.position.set(0, FLOOR_Y, ROOM_Z); scene.add(floor);
 
-    var LEN = 46;
-    var SHELLS = [
-      { r: 0.30, color: 0x2ee6ff, emissive: 0x2ee6ff, ei: 1.5, op: 1.00, rough: 0.15 }, // Kern
-      { r: 0.62, color: 0xbfefff, emissive: 0x6fd8ff, ei: 0.35, op: 0.34, rough: 0.05 }, // Cladding
-      { r: 0.86, color: 0x8aa4ff, emissive: 0x3b4fa8, ei: 0.22, op: 0.30, rough: 0.25 }, // Coating
-      { r: 1.12, color: 0xff4fb0, emissive: 0x7a1e52, ei: 0.25, op: 0.34, rough: 0.45 }, // Buffer
-      { r: 1.45, color: 0xffb43c, emissive: 0x6d4410, ei: 0.18, op: 0.30, rough: 0.6 }   // Mantel
-    ];
-    var shells = SHELLS.map(function (s, i) {
-      var geo = new THREE.CylinderGeometry(s.r, s.r, LEN, i === 0 ? 40 : 56, 1, true);
-      var mat = new THREE.MeshStandardMaterial({
-        color: s.color, emissive: s.emissive, emissiveIntensity: s.ei,
-        roughness: s.rough, metalness: 0.15, transparent: true, opacity: s.op,
-        side: THREE.DoubleSide, depthWrite: i === 0
-      });
-      var m = new THREE.Mesh(geo, mat);
-      m.rotation.z = Math.PI / 2;
-      m.userData = { baseOp: s.op, baseR: s.r, i: i, baseEi: s.ei };
-      group.add(m);
-      return m;
+    var ceil = grid(280, 70, 0x1b3a6b, 0x122a4e, 0.12);
+    ceil.position.set(0, CEIL_Y, ROOM_Z);
+    scene.add(ceil);
+
+    var left = grid(280, 40, 0x1e3f73, 0x142a52, 0.16);
+    left.rotation.z = Math.PI / 2; left.position.set(-WALL_X, 1, ROOM_Z); scene.add(left);
+
+    var right = grid(280, 40, 0x1e3f73, 0x142a52, 0.16);
+    right.rotation.z = Math.PI / 2; right.position.set(WALL_X, 1, ROOM_Z); scene.add(right);
+
+    /* — Licht — */
+    scene.add(new THREE.AmbientLight(0x3f5a91, 0.7));
+
+    /* — Die Faser als Tube durch den Raum — */
+    var curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(4.6, -1.8, 15),
+      new THREE.Vector3(2.6, -0.8, 1),
+      new THREE.Vector3(0.4, 0.4, -20),
+      new THREE.Vector3(-1.5, -0.2, -48),
+      new THREE.Vector3(0.7, 0.7, -80),
+      new THREE.Vector3(-0.2, 0.1, -118)
+    ]);
+
+    var core = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 260, 0.085, 10, false),
+      new THREE.MeshBasicMaterial({ color: 0xa9e4ff })
+    );
+    scene.add(core);
+
+    var sheath = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 200, 0.3, 14, false),
+      new THREE.MeshStandardMaterial({
+        color: 0x1a4e77, emissive: 0x0d2f4d, emissiveIntensity: 0.8,
+        roughness: 0.25, metalness: 0.3, transparent: true, opacity: 0.3, side: THREE.DoubleSide
+      })
+    );
+    scene.add(sheath);
+
+    /* — Lichtpulse in der Faser — */
+    var pulseGeo = new THREE.SphereGeometry(0.19, 12, 12);
+    var pulses = [];
+    for (var i = 0; i < 22; i++) {
+      var m = new THREE.Mesh(pulseGeo, new THREE.MeshBasicMaterial({
+        color: i % 4 === 0 ? 0xffffff : (i % 4 === 1 ? 0x9df3ff : (i % 4 === 2 ? 0xffd6ee : 0xcfe6ff)),
+        transparent: true, opacity: 0.95
+      }));
+      m.userData = { t: i / 22, sp: 0.055 + Math.random() * 0.03 };
+      scene.add(m);
+      pulses.push(m);
+    }
+
+    /* — Stationen: Schrank, Lichtsäule, Stichleitung — */
+    var beamMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.13, blending: THREE.AdditiveBlending, depthWrite: false });
+    STATIONS.forEach(function (s, i) {
+      var p = curve.getPointAt(s.t);
+      s.cablePos = p.clone();
+      var cx = p.x + s.side * (2.6 + i * 1.45);
+      var cz = p.z;
+
+      var lamp = new THREE.PointLight(s.color, 22, 34);
+      lamp.position.set(cx, FLOOR_Y + 2.4, cz);
+      scene.add(lamp);
+
+      var box = new THREE.Mesh(
+        new THREE.BoxGeometry(1.0, 2.2, 0.85),
+        new THREE.MeshStandardMaterial({ color: 0x0b1024, roughness: 0.6, metalness: 0.4 })
+      );
+      box.position.set(cx, FLOOR_Y + 1.1, cz);
+      scene.add(box);
+
+      var edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(box.geometry),
+        new THREE.LineBasicMaterial({ color: s.color, transparent: true, opacity: 0.85 })
+      );
+      edges.position.copy(box.position);
+      scene.add(edges);
+      s.edges = edges;
+
+      var face = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.62, 0.16),
+        new THREE.MeshBasicMaterial({ color: s.color })
+      );
+      face.position.set(cx, FLOOR_Y + 1.75, cz + 0.44);
+      scene.add(face);
+
+      var beam = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.42, 9.4, 10, 1, true), beamMat.clone());
+      beam.material.color = new THREE.Color(s.color);
+      beam.position.set(cx, FLOOR_Y + 4.7, cz);
+      scene.add(beam);
+
+      var pad = new THREE.Mesh(
+        new THREE.RingGeometry(0.9, 1.5, 28),
+        new THREE.MeshBasicMaterial({ color: s.color, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false })
+      );
+      pad.rotation.x = -Math.PI / 2;
+      pad.position.set(cx, FLOOR_Y + 0.02, cz);
+      scene.add(pad);
+
+      var stub = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(p.x, p.y, p.z),
+          new THREE.Vector3(cx, FLOOR_Y + 2.2, cz)
+        ]),
+        new THREE.LineBasicMaterial({ color: s.color, transparent: true, opacity: 0.55 })
+      );
+      scene.add(stub);
+
+      s.anchor = new THREE.Vector3(cx, FLOOR_Y + 2.95 + i * 1.3, cz);
     });
 
-    // Lichtpulse im Kern
-    var pulseGeo = new THREE.SphereGeometry(0.22, 14, 14);
-    var pulses = [];
-    for (var p = 0; p < 16; p++) {
-      var mat = new THREE.MeshBasicMaterial({
-        color: p % 3 === 0 ? 0xffffff : (p % 3 === 1 ? 0x9df3ff : 0xffd0ec),
-        transparent: true, opacity: 0.95
-      });
-      var mesh = new THREE.Mesh(pulseGeo, mat);
-      mesh.userData = { t: p / 16, speed: 0.11 + Math.random() * 0.06 };
-      group.add(mesh);
-      pulses.push(mesh);
+    /* — Staub für Tiefenstaffelung — */
+    var N = 1400, pos = new Float32Array(N * 3);
+    for (var k = 0; k < N; k++) {
+      pos[k * 3] = (Math.random() - 0.5) * 26;
+      pos[k * 3 + 1] = FLOOR_Y + Math.random() * 9;
+      pos[k * 3 + 2] = 14 - Math.random() * 150;
     }
-
-    // Staubpartikel für Tiefe
-    var starGeo = new THREE.BufferGeometry();
-    var N = 900, pos = new Float32Array(N * 3);
-    for (var i = 0; i < N; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 70;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 40;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 40 - 10;
-    }
-    starGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    var stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-      color: 0x8fb6ff, size: 0.075, transparent: true, opacity: 0.5, sizeAttenuation: true
+    var dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+      color: 0x9dc0ff, size: 0.055, transparent: true, opacity: 0.55, sizeAttenuation: true, depthWrite: false
     }));
-    scene.add(stars);
+    scene.add(dust);
 
-    var mouse = { x: 0, y: 0 };
+    /* — Unscharfe Lichtflecken dicht vor der Kamera (starke Parallaxe) — */
+    var bc = document.createElement("canvas"); bc.width = bc.height = 128;
+    var bg = bc.getContext("2d");
+    var rg = bg.createRadialGradient(64, 64, 0, 64, 64, 64);
+    rg.addColorStop(0, "rgba(255,255,255,1)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+    bg.fillStyle = rg; bg.fillRect(0, 0, 128, 128);
+    var bokehTex = new THREE.CanvasTexture(bc);
+    var bokeh = [];
+    var BC = [0x2EE6FF, 0xFF4FB0, 0xFFB43C, 0x5CF2A6, 0x8AA4FF];
+    for (var b = 0; b < 7; b++) {
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: bokehTex, color: BC[b % BC.length], transparent: true,
+        opacity: 0.05 + Math.random() * 0.05, blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      sp.position.set((Math.random() - 0.5) * 16, (Math.random() - 0.5) * 9, 2 + Math.random() * 7);
+      var sc = 2.5 + Math.random() * 5;
+      sp.scale.set(sc, sc, 1);
+      scene.add(sp);
+      bokeh.push(sp);
+    }
+
+    /* — Maus-Parallaxe — */
+    var mouse = { x: 0, y: 0 }, mx = 0, my = 0;
     window.addEventListener("pointermove", function (e) {
       mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
       mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
@@ -179,448 +237,195 @@
     });
 
     var clock = new THREE.Clock();
+    var look = new THREE.Vector3();
+
     function frame() {
       requestAnimationFrame(frame);
       var dt = Math.min(clock.getDelta(), 0.05);
-      var e = 1 - Math.pow(0.001, dt); // zeitunabhängiges Lerp
-
-      view.camZ = lerp(view.camZ, target.camZ, e);
-      view.camY = lerp(view.camY, target.camY, e);
-      view.rotZ = lerp(view.rotZ, target.rotZ, e);
-      view.posX = lerp(view.posX, target.posX, e);
-      view.posY = lerp(view.posY, target.posY, e);
-      view.peel = lerp(view.peel, target.peel, e);
-      view.glow = lerp(view.glow, target.glow, e);
-      view.visible = lerp(view.visible, target.visible, e);
-
-      camera.position.z = view.camZ;
-      camera.position.y = view.camY + mouse.y * -0.35;
-      camera.position.x = mouse.x * 0.5;
-      camera.lookAt(0, view.camY * 0.4, 0);
-
-      group.rotation.z = view.rotZ;
-      group.rotation.x = mouse.y * 0.12;
-      if (!reduced) group.rotation.y += target.spin;
-      group.position.x = view.posX;
-      group.position.y = view.posY;
-
-      // Schichten abisolieren: peel 0..4 = wie viele äußere Schichten offen sind
-      shells.forEach(function (m, i) {
-        var open = clamp(view.peel - (4 - i), 0, 1);       // 1 = vollständig geöffnet
-        var d = m.userData;
-        m.material.opacity = d.baseOp * (1 - open) * view.visible;
-        m.material.emissiveIntensity = d.baseEi * view.glow;
-        var s = 1 + open * 2.6;
-        m.scale.set(s, 1, s);
-        m.visible = m.material.opacity > 0.008;
-      });
-      shells[0].material.opacity = view.visible;
-      shells[0].visible = view.visible > 0.02;
-
+      var e = 1 - Math.pow(0.0008, dt);
       var t = clock.getElapsedTime();
-      pulses.forEach(function (m, i) {
-        var d = m.userData;
-        d.t = (d.t + dt * d.speed) % 1;
-        m.position.x = (d.t - 0.5) * LEN;
-        var wob = Math.sin(t * 2 + i) * 0.05;
-        m.position.y = wob; m.position.z = Math.cos(t * 1.7 + i) * 0.05;
-        var sc = 0.7 + Math.sin(t * 6 + i) * 0.18;
-        m.scale.setScalar(sc * (0.6 + view.glow * 0.5));
-        m.material.opacity = 0.95 * view.visible;
-        m.visible = view.visible > 0.05;
-      });
 
-      stars.rotation.y += 0.0004;
-      stars.material.opacity = 0.16 + view.visible * 0.34;
+      mx = lerp(mx, mouse.x, e * 0.7);
+      my = lerp(my, mouse.y, e * 0.7);
+
+      camera.position.x = lerp(camera.position.x, mx * 2.2, e);
+      camera.position.y = lerp(camera.position.y, cam.y - my * 1.1, e);
+      camera.position.z = lerp(camera.position.z, cam.z, e);
+      look.set(mx * 1.4, cam.y + cam.pitch - my * 0.9, camera.position.z - 24);
+      camera.lookAt(look);
+
+      if (!reduced) {
+        pulses.forEach(function (m) {
+          var d = m.userData;
+          d.t = (d.t + dt * d.sp) % 1;
+          var p = curve.getPointAt(1 - d.t);
+          m.position.copy(p);
+          var s = 0.72 + Math.sin(t * 7 + d.t * 20) * 0.22;
+          m.scale.setScalar(s);
+        });
+        STATIONS.forEach(function (s, i) {
+          s.edges.material.opacity = 0.62 + Math.sin(t * 1.6 + i) * 0.22;
+        });
+        dust.rotation.z += dt * 0.006;
+      }
+
+      bokeh.forEach(function (sp, i) {
+        sp.position.y += Math.sin(t * 0.4 + i) * dt * 0.25;
+      });
 
       renderer.render(scene, camera);
+      placeHotspots(camera);
     }
     frame();
-    return { renderer: renderer, camera: camera, group: group };
-  }
-  scene3d = build3D();
-
-  /* ═══════════════ 3 · SCROLL-CHOREOGRAFIE ═══════════════ */
-  var hasGSAP = typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined";
-  if (hasGSAP) gsap.registerPlugin(ScrollTrigger);
-
-  function setView(o) { Object.assign(target, o); }
-
-  var SCENES = {
-    hero:           { camZ: 8.5, camY: 0,    rotZ: -0.38, posX: 0,    posY: 0,    peel: 0, glow: 1,   spin: 0.0016, visible: 1 },
-    strecke:        { camZ: 16,  camY: 0,    rotZ: -0.06, posX: 0,    posY: -4.6, peel: 0, glow: 0.7, spin: 0.0008, visible: 0.45 },
-    medium:         { camZ: 5.2, camY: 0,    rotZ: -0.12, posX: 3.0,  posY: 0,    peel: 0, glow: 1.3, spin: 0.0022, visible: 1 },
-    varianten:      { camZ: 13,  camY: 0,    rotZ: 0.42,  posX: 2.5,  posY: 1.5,  peel: 0, glow: 0.5, spin: 0.001,  visible: 0.4 },
-    technik:        { camZ: 9,   camY: 0,    rotZ: -0.55, posX: -3,   posY: -1,   peel: 2, glow: 0.8, spin: 0.0018, visible: 0.45 },
-    zahlen:         { camZ: 17,  camY: 0,    rotZ: 0.2,   posX: 0,    posY: 2.8,  peel: 0, glow: 0.45, spin: 0.0009, visible: 0.3 },
-    rechner:        { camZ: 12,  camY: 0,    rotZ: -0.25, posX: 0,    posY: -2.6, peel: 0, glow: 0.6, spin: 0.0026, visible: 0.35 },
-    verfuegbarkeit: { camZ: 20,  camY: 0,    rotZ: 0.6,   posX: -2,   posY: 2,    peel: 0, glow: 0.4, spin: 0.0007, visible: 0.28 },
-    kosten:         { camZ: 15,  camY: 0,    rotZ: -0.7,  posX: 2.8,  posY: -1.5, peel: 0, glow: 0.4, spin: 0.001,  visible: 0.25 },
-    quiz:           { camZ: 8,   camY: 0,    rotZ: 0.9,   posX: 0,    posY: 3.2,  peel: 3, glow: 0.9, spin: 0.003,  visible: 0.35 },
-    glossar:        { camZ: 22,  camY: 0,    rotZ: 0.1,   posX: 0,    posY: -3,   peel: 0, glow: 0.35, spin: 0.0006, visible: 0.22 },
-    quellen:        { camZ: 26,  camY: 0,    rotZ: 0.3,   posX: 0,    posY: -4,   peel: 0, glow: 0.3, spin: 0.0005, visible: 0.18 }
-  };
-
-  var sections = Array.prototype.slice.call(document.querySelectorAll(".sec"));
-  var dotLinks = Array.prototype.slice.call(document.querySelectorAll(".dots a"));
-
-  function activateDot(id) {
-    dotLinks.forEach(function (a) { a.classList.toggle("is-on", a.getAttribute("href") === "#" + id); });
+    return { camera: camera, scene: scene, renderer: renderer };
   }
 
-  sections.forEach(function (sec) {
-    var id = sec.id;
-    if (hasGSAP) {
-      ScrollTrigger.create({
-        trigger: sec, start: "top 55%", end: "bottom 45%",
-        onEnter: function () { if (SCENES[id]) setView(SCENES[id]); activateDot(id); },
-        onEnterBack: function () { if (SCENES[id]) setView(SCENES[id]); activateDot(id); }
-      });
-    }
-  });
-  activateDot("hero");
+  /* ════════ KLICKPUNKTE IM RAUM ════════ */
+  var hotLayer = document.getElementById("hotspots");
+  var hotEls = [];
+  var projV = (typeof THREE !== "undefined") ? new THREE.Vector3() : null;
 
-  if (hasGSAP && !reduced) {
-    gsap.from(".hero-title .line", { y: 120, opacity: 0, duration: 1.1, stagger: 0.12, ease: "power4.out" });
-    gsap.from(".hero-sub, .hero-stats > div, .scroll-cue", { y: 24, opacity: 0, duration: 0.8, stagger: 0.08, delay: 0.5, ease: "power3.out" });
-
-    document.querySelectorAll(".sec:not(.hero) .sec-head, .card, .vcard, .mcard, .counter, .crow").forEach(function (el) {
-      gsap.from(el, {
-        scrollTrigger: { trigger: el, start: "top 88%" },
-        y: 30, opacity: 0, duration: 0.7, ease: "power3.out"
-      });
-    });
-  }
-
-  /* ── 3a · Pin: Übertragungsstrecke ── */
-  var nodes = Array.prototype.slice.call(document.querySelectorAll(".strecke-svg .node"));
-  var steps = Array.prototype.slice.call(document.querySelectorAll(".strecke-steps li"));
-  var lightPath = document.getElementById("pathLight");
-  var pulseDot = document.querySelector(".strecke-svg .path-pulse");
-  var pathLen = lightPath ? lightPath.getTotalLength() : 0;
-
-  function setStrecke(prog) {
-    var p = clamp(prog, 0, 1);
-    if (lightPath) {
-      lightPath.style.strokeDasharray = pathLen;
-      lightPath.style.strokeDashoffset = pathLen * (1 - p);
-    }
-    if (pulseDot && pathLen) {
-      var pt = lightPath.getPointAtLength(pathLen * p);
-      pulseDot.setAttribute("cx", pt.x); pulseDot.setAttribute("cy", pt.y);
-      pulseDot.style.opacity = p > 0.01 && p < 0.99 ? 1 : 0;
-    }
-    var active = Math.min(nodes.length - 1, Math.floor(p * nodes.length * 0.999));
-    nodes.forEach(function (n, i) {
-      n.classList.toggle("is-on", i === active);
-      n.classList.toggle("is-done", i < active);
-    });
-    steps.forEach(function (s, i) { s.classList.toggle("is-on", i === active); });
-  }
-  setStrecke(0.04);
-
-  if (hasGSAP) {
-    ScrollTrigger.create({
-      trigger: "#strecke", start: "top top", end: "+=" + (window.innerHeight * 2.4),
-      pin: "#strecke .pin-wrap", pinSpacing: true, scrub: reduced ? false : 0.6,
-      onUpdate: function (self) { setStrecke(self.progress); },
-      onEnter: function () { setView(SCENES.strecke); activateDot("strecke"); },
-      onEnterBack: function () { setView(SCENES.strecke); activateDot("strecke"); }
-    });
-  }
-
-  /* ── 3b · Pin: Medium / Schichten ── */
-  var layerItems = Array.prototype.slice.call(document.querySelectorAll(".layers li"));
-  var activeLayer = 4;
-
-  /* Querschnitt (2D-Canvas) */
-  var cross = document.getElementById("crossCut");
-  var crossCtx = cross ? cross.getContext("2d") : null;
-  var CROSS = [
-    { r: 0.16, c: "#2EE6FF", name: "Kern", size: "9 µm" },
-    { r: 0.34, c: "#BFEFFF", name: "Mantel", size: "125 µm" },
-    { r: 0.52, c: "#8AA4FF", name: "Coating", size: "250 µm" },
-    { r: 0.74, c: "#FF4FB0", name: "Buffer", size: "900 µm" },
-    { r: 1.00, c: "#FFB43C", name: "Außenmantel", size: "2–3 mm" }
-  ];
-  var crossOpen = [0, 0, 0, 0, 0]; // 0 = geschlossen, 1 = abgezogen
-
-  function drawCross(t) {
-    if (!crossCtx) return;
-    var W = cross.width, H = cross.height;
-    var cx = W / 2, cy = H / 2 - 6, R = Math.min(W, H) * 0.40;
-    crossCtx.clearRect(0, 0, W, H);
-
-    for (var i = CROSS.length - 1; i >= 0; i--) {
-      var L = CROSS[i], open = crossOpen[i];
-      var rad = R * L.r * (1 + open * 1.5);
-      var alpha = (1 - open) * (i === activeLayer ? 1 : 0.55);
-      if (alpha <= 0.02) continue;
-
-      crossCtx.globalAlpha = alpha * 0.16;
-      crossCtx.fillStyle = L.c;
-      crossCtx.beginPath(); crossCtx.arc(cx, cy, rad, 0, 6.2832); crossCtx.fill();
-
-      crossCtx.globalAlpha = alpha;
-      crossCtx.strokeStyle = L.c;
-      crossCtx.lineWidth = i === activeLayer ? 3 : 1.4;
-      crossCtx.shadowColor = L.c;
-      crossCtx.shadowBlur = i === activeLayer ? 22 : 6;
-      crossCtx.beginPath(); crossCtx.arc(cx, cy, rad, 0, 6.2832); crossCtx.stroke();
-      crossCtx.shadowBlur = 0;
-    }
-    crossCtx.globalAlpha = 1;
-
-    // Lichtpunkt im Kern
-    var pulse = 0.72 + Math.sin(t / 380) * 0.28;
-    var core = R * CROSS[0].r * 0.8;
-    var g = crossCtx.createRadialGradient(cx, cy, 0, cx, cy, core * 2.2);
-    g.addColorStop(0, "rgba(255,255,255," + (0.85 * pulse).toFixed(3) + ")");
-    g.addColorStop(0.4, "rgba(46,230,255," + (0.5 * pulse).toFixed(3) + ")");
-    g.addColorStop(1, "rgba(46,230,255,0)");
-    crossCtx.fillStyle = g;
-    crossCtx.beginPath(); crossCtx.arc(cx, cy, core * 2.2, 0, 6.2832); crossCtx.fill();
-
-    // Beschriftung der aktiven Schicht
-    var A = CROSS[activeLayer];
-    var radA = R * A.r;
-    crossCtx.strokeStyle = "rgba(146,168,214,.5)";
-    crossCtx.lineWidth = 1;
-    crossCtx.setLineDash([4, 4]);
-    crossCtx.beginPath();
-    crossCtx.moveTo(cx + radA * 0.7, cy - radA * 0.7);
-    crossCtx.lineTo(cx + R * 1.12, cy - R * 0.96);
-    crossCtx.stroke();
-    crossCtx.setLineDash([]);
-    crossCtx.fillStyle = A.c;
-    crossCtx.font = "600 16px 'Figtree', sans-serif";
-    crossCtx.textAlign = "right";
-    crossCtx.fillText(A.name, W - 14, H * 0.14);
-    crossCtx.fillStyle = "#97A3BF";
-    crossCtx.font = "13px 'JetBrains Mono', monospace";
-    crossCtx.fillText(A.size, W - 14, H * 0.14 + 20);
-    crossCtx.textAlign = "left";
-  }
-
-  if (crossCtx) {
-    (function loop(t) {
-      for (var i = 0; i < 5; i++) {
-        var goal = i > activeLayer ? 1 : 0;
-        crossOpen[i] = lerp(crossOpen[i], goal, 0.12);
-      }
-      drawCross(t);
-      requestAnimationFrame(loop);
-    })(0);
-  }
-
-  function setLayer(l) {
-    activeLayer = clamp(Math.round(l), 0, 4);
-    layerItems.forEach(function (li) {
-      li.classList.toggle("is-on", +li.dataset.layer === activeLayer);
-    });
-    target.peel = 4 - activeLayer;
-  }
-  setLayer(4);
-
-  layerItems.forEach(function (li) {
-    li.addEventListener("click", function () { setLayer(+li.dataset.layer); });
-    li.setAttribute("tabindex", "0");
-    li.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLayer(+li.dataset.layer); }
-    });
+  STATIONS.forEach(function (s) {
+    var b = document.createElement("button");
+    b.className = "hs";
+    b.style.setProperty("--c", s.hex);
+    b.dataset.modal = s.key;
+    b.innerHTML = '<span class="ring"></span><span class="hs-txt"><b></b><em></em></span>';
+    b.querySelector("b").textContent = s.name;
+    b.querySelector("em").textContent = s.sub;
+    hotLayer.appendChild(b);
+    hotEls.push(b);
+    s.el = b;
   });
 
-  if (hasGSAP) {
-    ScrollTrigger.create({
-      trigger: "#medium", start: "top top", end: "+=" + (window.innerHeight * 2.2),
-      pin: "#medium .pin-wrap", pinSpacing: true, scrub: reduced ? false : 0.5,
-      onUpdate: function (self) { setLayer(4 - self.progress * 4.49); },
-      onEnter: function () { setView(SCENES.medium); activateDot("medium"); },
-      onEnterBack: function () { setView(SCENES.medium); activateDot("medium"); }
+  function placeHotspots(camera) {
+    if (!projV) return;
+    var W = window.innerWidth, H = window.innerHeight;
+    var cand = [];
+
+    for (var i = 0; i < STATIONS.length; i++) {
+      var s = STATIONS[i];
+      if (!s.anchor || !s.el) continue;
+      projV.copy(s.anchor).project(camera);
+      var dist = camera.position.distanceTo(s.anchor);
+      var x = (projV.x * 0.5 + 0.5) * W;
+      var y = (-projV.y * 0.5 + 0.5) * H;
+      var ok = projV.z <= 1 && dist < 96 && x > -60 && x < W + 60 && y > 84 && y < H - 40;
+      cand.push({ s: s, x: x, y: y, d: dist, ok: ok });
+    }
+
+    // Näher gelegene Punkte gewinnen, überlappende dahinter werden ausgeblendet
+    cand.sort(function (a, b) { return a.d - b.d; });
+    var taken = [];
+    cand.forEach(function (c) {
+      if (!c.ok) return;
+      for (var j = 0; j < taken.length; j++) {
+        if (Math.abs(taken[j].x - c.x) < 152 && Math.abs(taken[j].y - c.y) < 46) { c.ok = false; return; }
+      }
+      taken.push(c);
+    });
+
+    cand.forEach(function (c) {
+      var sc = clamp(1.28 - c.d / 90, 0.66, 1.06);
+      var el = c.s.el;
+      el.style.transform = "translate(-50%, -50%) translate(" + c.x.toFixed(1) + "px," + c.y.toFixed(1) + "px) scale(" + sc.toFixed(3) + ")";
+      el.style.opacity = c.ok ? clamp(1.3 - c.d / 88, 0.42, 1).toFixed(2) : "0";
+      el.style.pointerEvents = (c.ok && stage === 0 && !modalOpen) ? "auto" : "none";
     });
   }
 
-  /* Singlemode / Multimode */
-  document.querySelectorAll(".tcard").forEach(function (b) {
-    b.addEventListener("click", function () {
-      document.querySelectorAll(".tcard").forEach(function (x) { x.classList.remove("is-on"); });
-      b.classList.add("is-on");
-      target.spin = b.dataset.mode === "mm" ? 0.006 : 0.0022;
-      target.glow = b.dataset.mode === "mm" ? 1.7 : 1.3;
-    });
-  });
+  scene3d = buildRoom();
 
-  /* ═══════════════ 4 · FTTx ═══════════════ */
-  var fiberPart = document.getElementById("fiberPart");
-  document.querySelectorAll(".vcard").forEach(function (b) {
-    b.addEventListener("click", function () {
-      document.querySelectorAll(".vcard").forEach(function (x) { x.classList.remove("is-on"); });
-      b.classList.add("is-on");
-      if (fiberPart) fiberPart.style.width = (+b.dataset.f * 100) + "%";
-    });
-  });
+  /* ════════ BÜHNENWECHSEL ════════ */
+  var stages = [document.getElementById("stage0"), document.getElementById("stage1")];
+  var navBtns = Array.prototype.slice.call(document.querySelectorAll(".stage-nav button"));
+  var posterShown = false;
 
-  /* ═══════════════ 5 · TOTALREFLEXION ═══════════════ */
-  var tir = document.getElementById("tirCanvas");
-  if (tir) {
-    var ctx = tir.getContext("2d");
-    var slider = document.getElementById("tirAngle");
-    var out = document.getElementById("tirOut");
-    var msg = document.getElementById("tirMsg");
-    var W = tir.width, H = tir.height;
-    var coreTop = 80, coreBot = 180;
-    var CRIT = 9.4; // Grenzwinkel zur Faserachse bei n1=1.48 / n2=1.46
-
-    function drawTIR() {
-      var ang = +slider.value;
-      out.textContent = ang.toFixed(1).replace(".", ",") + "°";
-      var guided = ang <= CRIT;
-
-      ctx.clearRect(0, 0, W, H);
-      // Mantel
-      ctx.fillStyle = "#101a3a"; ctx.fillRect(0, 20, W, H - 40);
-      // Kern
-      var g = ctx.createLinearGradient(0, coreTop, 0, coreBot);
-      g.addColorStop(0, "#123055"); g.addColorStop(0.5, "#0d2246"); g.addColorStop(1, "#123055");
-      ctx.fillStyle = g; ctx.fillRect(0, coreTop, W, coreBot - coreTop);
-      ctx.strokeStyle = "rgba(191,239,255,.55)"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, coreTop); ctx.lineTo(W, coreTop);
-      ctx.moveTo(0, coreBot); ctx.lineTo(W, coreBot); ctx.stroke();
-
-      ctx.fillStyle = "#97A3BF"; ctx.font = "12px 'JetBrains Mono', monospace";
-      ctx.fillText("Mantel  n₂ = 1,46", 10, 44);
-      ctx.fillText("Kern  n₁ = 1,48", 10, coreTop + 20);
-
-      // Strahl
-      var x = 0, y = coreBot - 8, dir = -1;
-      var slope = Math.tan(ang * Math.PI / 180) * 6; // Darstellung 6-fach überhöht
-      ctx.beginPath(); ctx.moveTo(x, y);
-      ctx.strokeStyle = guided ? "#2EE6FF" : "#FF7A59";
-      ctx.lineWidth = 2.4;
-      ctx.shadowColor = guided ? "#2EE6FF" : "#FF7A59"; ctx.shadowBlur = 12;
-
-      var bounces = 0, escaped = false;
-      while (x < W && bounces < 40) {
-        var limit = dir < 0 ? coreTop : coreBot;
-        var dx = Math.abs(limit - y) / (slope || 0.0001);
-        var nx = x + dx;
-        if (nx > W) { ctx.lineTo(W, y + dir * (W - x) * slope); break; }
-        ctx.lineTo(nx, limit);
-        if (!guided) {
-          // Austritt in den Mantel: Strahl bricht weg
-          var ex = nx + 70, ey = limit + dir * 60;
-          ctx.lineTo(ex, ey);
-          escaped = true; break;
-        }
-        x = nx; y = limit; dir *= -1; bounces++;
-      }
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      msg.textContent = guided
-        ? "Winkel " + ang.toFixed(1).replace(".", ",") + "° ≤ Grenzwinkel 9,4° → Totalreflexion, das Licht bleibt im Kern. " + bounces + " Reflexionen im gezeigten Ausschnitt (Winkel stark überhöht dargestellt)."
-        : "Winkel " + ang.toFixed(1).replace(".", ",") + "° > Grenzwinkel 9,4° → das Licht tritt in den Mantel aus und geht verloren.";
-      msg.style.color = guided ? "" : "#FF7A59";
-      if (escaped) { /* nur zur Klarheit */ }
+  function setStage(n) {
+    if (n === stage) return;
+    stage = n;
+    stages.forEach(function (el, i) { el.classList.toggle("is-on", i === n); });
+    navBtns.forEach(function (b, i) { b.classList.toggle("is-on", i === n); });
+    hotLayer.style.opacity = n === 0 ? "1" : "0";
+    if (n === 1 && !posterShown) {
+      posterShown = true;
+      stages[1].classList.add("revealed");
     }
-    slider.addEventListener("input", drawTIR);
-    drawTIR();
   }
 
-  /* ═══════════════ 6 · MODULATIONS-WELLEN ═══════════════ */
-  document.querySelectorAll(".wave").forEach(function (cv) {
-    var c = cv.getContext("2d"), w = cv.width, h = cv.height, kind = cv.dataset.wave;
-    var CY = "#2EE6FF", MG = "#FF4FB0", AM = "#FFB43C";
-    c.clearRect(0, 0, w, h);
-    c.lineWidth = 2.2; c.lineJoin = "round";
+  function onScroll() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var p = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
+    var a = smooth(clamp(p / 0.5, 0, 1));          // Anflug durch den Raum
+    var c = smooth(clamp((p - 0.5) / 0.5, 0, 1));  // Rückzug für das Plakat
+    cam.z = lerp(11, 2.2, a) + c * 5.5;
+    cam.y = lerp(0.3, 0.8, a) + c * 3.4;
+    cam.pitch = -c * 1.6;
+    setStage(p < 0.48 ? 0 : 1);
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  onScroll();
 
-    function baseline() {
-      c.strokeStyle = "rgba(146,168,214,.18)"; c.lineWidth = 1;
-      c.beginPath(); c.moveTo(0, h - 12); c.lineTo(w, h - 12); c.stroke(); c.lineWidth = 2.2;
-    }
+  function scrollToStage(n) {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: n === 0 ? 0 : max, behavior: reduced ? "auto" : "smooth" });
+  }
+  navBtns.forEach(function (b) {
+    b.addEventListener("click", function () { scrollToStage(+b.dataset.stage); });
+  });
 
-    if (kind === "nrz") {
-      baseline();
-      var bits = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0];
-      c.strokeStyle = CY; c.beginPath();
-      bits.forEach(function (b, i) {
-        var x0 = (i / bits.length) * w, x1 = ((i + 1) / bits.length) * w;
-        var y = b ? 22 : h - 18;
-        if (i === 0) c.moveTo(x0, y); else c.lineTo(x0, y);
-        c.lineTo(x1, y);
-      });
-      c.stroke();
-    } else if (kind === "pam4") {
-      baseline();
-      var lv = [3, 1, 2, 0, 3, 2, 1, 3, 0, 2];
-      c.strokeStyle = MG; c.beginPath();
-      lv.forEach(function (l, i) {
-        var x0 = (i / lv.length) * w, x1 = ((i + 1) / lv.length) * w;
-        var y = h - 18 - (l / 3) * (h - 42);
-        if (i === 0) c.moveTo(x0, y); else c.lineTo(x0, y);
-        c.lineTo(x1, y);
-      });
-      c.stroke();
-      c.strokeStyle = "rgba(146,168,214,.2)"; c.lineWidth = 1;
-      [0, 1, 2, 3].forEach(function (l) {
-        var y = h - 18 - (l / 3) * (h - 42);
-        c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke();
-      });
-    } else if (kind === "qam") {
-      // Konstellationsdiagramm 16-QAM
-      c.strokeStyle = "rgba(146,168,214,.25)"; c.lineWidth = 1;
-      c.beginPath(); c.moveTo(w / 2, 6); c.lineTo(w / 2, h - 6); c.moveTo(10, h / 2); c.lineTo(w - 10, h / 2); c.stroke();
-      for (var a = 0; a < 4; a++) for (var b2 = 0; b2 < 4; b2++) {
-        var px = w / 2 + (a - 1.5) * 26, py = h / 2 + (b2 - 1.5) * 18;
-        c.fillStyle = (a + b2) % 2 ? CY : MG;
-        c.beginPath(); c.arc(px, py, 3.4, 0, 6.3); c.fill();
-      }
-      c.fillStyle = "#97A3BF"; c.font = "10px 'JetBrains Mono', monospace";
-      c.fillText("I", w - 16, h / 2 - 6); c.fillText("Q", w / 2 + 6, 14);
-    } else if (kind === "wdm") {
-      baseline();
-      [[CY, 0], [MG, 1], [AM, 2], ["#5CF2A6", 3]].forEach(function (pair) {
-        c.strokeStyle = pair[0]; c.beginPath();
-        for (var x = 0; x <= w; x += 2) {
-          var y = h / 2 + Math.sin((x / w) * Math.PI * (6 + pair[1] * 3)) * (h / 2 - 22) * 0.55 - 6;
-          x === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
-        }
-        c.stroke();
-      });
-    } else if (kind === "tdma") {
-      baseline();
-      var slots = [CY, MG, AM, CY, "#5CF2A6", MG, CY, AM];
-      slots.forEach(function (col, i) {
-        var x0 = (i / slots.length) * w + 2, bw = w / slots.length - 4;
-        var hh = 16 + (i % 3) * 16;
-        c.fillStyle = col; c.globalAlpha = 0.85;
-        c.fillRect(x0, h - 18 - hh, bw, hh);
-      });
-      c.globalAlpha = 1;
-      c.fillStyle = "#97A3BF"; c.font = "10px 'JetBrains Mono', monospace";
-      c.fillText("ONT 1   ONT 2   ONT 3 …", 6, 14);
-    } else if (kind === "duplex") {
-      c.strokeStyle = "rgba(146,168,214,.2)"; c.lineWidth = 10; c.lineCap = "round";
-      c.beginPath(); c.moveTo(16, h / 2); c.lineTo(w - 16, h / 2); c.stroke();
-      c.lineWidth = 2.4; c.lineCap = "butt";
-      c.strokeStyle = CY; c.beginPath();
-      for (var x2 = 16; x2 <= w - 16; x2 += 2) {
-        var y2 = h / 2 - 12 + Math.sin(x2 / 9) * 5;
-        x2 === 16 ? c.moveTo(x2, y2) : c.lineTo(x2, y2);
-      }
-      c.stroke();
-      c.strokeStyle = MG; c.beginPath();
-      for (var x3 = 16; x3 <= w - 16; x3 += 2) {
-        var y3 = h / 2 + 14 + Math.sin(x3 / 6) * 4;
-        x3 === 16 ? c.moveTo(x3, y3) : c.lineTo(x3, y3);
-      }
-      c.stroke();
-      c.fillStyle = "#97A3BF"; c.font = "10px 'JetBrains Mono', monospace";
-      c.fillText("1577 nm ↓", 18, 20); c.fillText("1270 nm ↑", 18, h - 8);
+  /* ════════ MODAL ════════ */
+  var wrap = document.getElementById("modalWrap");
+  var mBody = document.getElementById("modalBody");
+  var mTitle = document.getElementById("modalTitle");
+  var mEyebrow = document.getElementById("modalEyebrow");
+  var lastFocus = null;
+
+  function openModal(key) {
+    var tpl = document.querySelector('template[data-t="' + key + '"]');
+    if (!tpl) return;
+    var meta = MODALS[key] || ["", key];
+    mEyebrow.textContent = meta[0];
+    mTitle.textContent = meta[1];
+    mBody.textContent = "";
+    mBody.appendChild(tpl.content.cloneNode(true));
+    wrap.hidden = false;
+    modalOpen = true;
+    document.body.classList.add("locked");
+    lastFocus = document.activeElement;
+    document.getElementById("modalX").focus();
+    if (WIDGETS[key]) WIDGETS[key](mBody);
+  }
+
+  function closeModal() {
+    if (!modalOpen) return;
+    wrap.hidden = true;
+    modalOpen = false;
+    crossRunning = false;
+    document.body.classList.remove("locked");
+    mBody.textContent = "";
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  document.addEventListener("click", function (e) {
+    var trigger = e.target.closest("[data-modal]");
+    if (trigger) { e.preventDefault(); openModal(trigger.dataset.modal); return; }
+    if (e.target.id === "modalBg" || e.target.id === "modalX") closeModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && modalOpen) { closeModal(); return; }
+    if (modalOpen) return;
+    if (e.target.matches("input, textarea")) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); scrollToStage(1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); scrollToStage(0); }
+    else if (e.key === "f" || e.key === "F") {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen && document.exitFullscreen(); }
     }
   });
 
-  /* ═══════════════ 7 · DATENRATEN-BALKEN ═══════════════ */
+  /* ════════ DATEN ════════ */
   var TECHS = [
     { n: "Glasfaser", s: "FTTH, XGS-PON", d: 10000, u: 10000, hero: true },
     { n: "Richtfunk", s: "lizenziert, PtP", d: 1000, u: 1000 },
@@ -629,228 +434,415 @@
     { n: "DSL", s: "VDSL 250 Vectoring", d: 250, u: 40 },
     { n: "Satellit", s: "LEO, Starlink", d: 200, u: 20 }
   ];
-  function logW(v) { return clamp((Math.log10(v) - 1) / (Math.log10(10000) - 1), 0.02, 1) * 100; }
-  function fmt(v) { return v >= 1000 ? (v / 1000) + " Gbit/s" : v + " Mbit/s"; }
 
-  var barsEl = document.getElementById("bars");
-  if (barsEl) {
-    TECHS.forEach(function (t) {
-      var row = document.createElement("div");
-      row.className = "bar-row" + (t.hero ? " is-hero" : "");
-      row.innerHTML =
-        '<div class="name">' + t.n + '<small>' + t.s + '</small></div>' +
-        '<div class="track">' +
-        '<div class="b down"><span>↓ ' + fmt(t.d) + '</span></div>' +
-        '<div class="b up"><span>↑ ' + fmt(t.u) + '</span></div>' +
-        '</div>';
-      barsEl.appendChild(row);
-    });
-    var barsShown = false;
-    var showBars = function () {
-      if (barsShown) return; barsShown = true;
-      barsEl.querySelectorAll(".bar-row").forEach(function (row, i) {
-        var t = TECHS[i];
+  var GLOSSAR = [
+    ["LWL", "Lichtwellenleiter — der Fachbegriff für das Glasfaserkabel: ein Leiter, in dem Licht statt Strom das Signal trägt."],
+    ["FTTH", "Fiber to the Home — die Glasfaser endet in der Wohnung oder im Büro. Kein Kupfer auf der letzten Meile."],
+    ["FTTB / FTTC", "Fiber to the Building beziehungsweise to the Curb — das Glas endet im Keller oder am Kabelverzweiger, der Rest läuft über Kupfer."],
+    ["ONT", "Optical Network Termination — das Glasfaser-Modem beim Kunden. Wandelt elektrische Signale in Licht und zurück."],
+    ["OLT", "Optical Line Termination — die Gegenstelle im PoP des Anbieters, an der viele hundert ONTs zusammenlaufen."],
+    ["PON", "Passive Optical Network — eine Faser wird mit stromlosen Splittern auf 32 bis 128 Teilnehmer aufgeteilt."],
+    ["P2P / AON", "Punkt zu Punkt beziehungsweise Active Optical Network — jeder Kunde bekommt eine eigene Faser mit garantierter Bandbreite."],
+    ["Splitter", "Passiver Glaskörper, der ein optisches Signal auf mehrere Fasern aufteilt, ohne Strom und ohne Elektronik."],
+    ["Gf-AP / APL", "Glasfaser-Abschlusspunkt beziehungsweise Abschlusspunkt Linientechnik — die Übergabedose im Keller."],
+    ["Singlemode", "Faser mit 9 µm Kern: nur ein Lichtweg, dadurch keine Modendispersion und Reichweiten bis 80 km."],
+    ["Multimode", "Faser mit 50 µm Kern: viele Lichtwege, billigere Sender, aber nur bis etwa 550 m."],
+    ["Totalreflexion", "Trifft Licht flach genug auf die Grenze zwischen dichterem Kern und dünnerem Mantel, wird es vollständig zurückgeworfen."],
+    ["Brechzahl (n)", "Maß dafür, wie stark ein Material Licht bremst. Kern n ≈ 1,48, Mantel n ≈ 1,46."],
+    ["Dämpfung", "Signalverlust in Dezibel pro Kilometer. Bei 1550 nm rund 0,2 dB/km."],
+    ["nm / Wellenlänge", "Nanometer, das Farbmaß des Lichts. 1310 nm und 1550 nm liegen im Infrarot."],
+    ["DWDM", "Dense Wavelength Division Multiplexing — bis zu 96 Wellenlängen teilen sich eine Faser."],
+    ["TDMA", "Time Division Multiple Access — im PON-Upstream bekommt jedes ONT feste Zeitschlitze."],
+    ["NRZ / OOK", "On-Off-Keying: Licht an ist 1, Licht aus ist 0. Das einfachste optische Modulationsverfahren."],
+    ["PAM4", "Vier Helligkeitsstufen statt zwei, also 2 Bit pro Symbol. Verdoppelt die Rate bei gleicher Symbolrate."],
+    ["XGS-PON", "PON-Generation mit symmetrisch 10 Gbit/s. Löst GPON schrittweise ab."],
+    ["Symmetrisch", "Upload genauso schnell wie Download — der große Vorteil gegenüber DSL und Kabel."],
+    ["Latenz", "Signallaufzeit. Im Glas etwa 5 µs pro Kilometer, ein FTTH-Anschluss liegt bei 1 bis 5 ms."],
+    ["Spleißen", "Dauerhaftes Verschweißen zweier Fasern im Lichtbogen, Verlust unter 0,1 dB."],
+    ["Homes Passed", "Adressen, an denen Glasfaser bis vor die Tür liegt, noch ohne Vertrag."],
+    ["Take-up-Rate", "Anteil der erschlossenen Haushalte mit tatsächlich gebuchtem Vertrag. In Deutschland rund 27 %."],
+    ["BKZ", "Baukostenzuschuss — einmalige Beteiligung an den Tiefbaukosten außerhalb der regulären Ausbauphase."]
+  ];
+
+  var QUIZ = [
+    { q: "Warum bleibt das Licht im Kern der Faser?",
+      a: ["Der Mantel ist verspiegelt", "Totalreflexion an der Grenze Kern zu Mantel", "Das Licht wird magnetisch geführt", "Der Kern ist ein Vakuum"], c: 1,
+      e: "Der Kern hat mit n ≈ 1,48 eine höhere Brechzahl als der Mantel mit n ≈ 1,46. Flach auftreffendes Licht wird deshalb vollständig zurückgeworfen." },
+    { q: "Was unterscheidet FTTH von FTTC?",
+      a: ["FTTH nutzt Multimode-Fasern", "FTTH gibt es nur für Firmen", "Bei FTTH endet das Glas im Büro, bei FTTC am Kabelverzweiger", "FTTC ist schneller"], c: 2,
+      e: "Bei FTTC läuft die letzte Meile über Kupfer, damit ist bei rund 250 Mbit/s Schluss. FTTH bringt das Glas bis ins Gebäude." },
+    { q: "Wie viele Teilnehmer teilen sich im PON typischerweise eine Faser?",
+      a: ["2 bis 4", "32 bis 128", "genau einer", "über 1 000"], c: 1,
+      e: "Ein passiver Splitter teilt das Signal auf 32 bis 128 Teilnehmer auf. Wer eine exklusive Faser braucht, nimmt Punkt zu Punkt." },
+    { q: "Welche Wellenlänge hat im Glas die geringste Dämpfung?",
+      a: ["850 nm", "1310 nm", "1550 nm", "450 nm"], c: 2,
+      e: "Bei 1550 nm liegt die Dämpfung bei etwa 0,2 dB/km. Deshalb nutzt man dieses C-Band für lange Strecken und DWDM." },
+    { q: "Was ist der größte praktische Nachteil von Glasfaser?",
+      a: ["Hohe Latenz", "Störanfällig gegen Elektromagnetik", "Geringe Reichweite", "Teurer, langsamer Tiefbau — die Verfügbarkeit hängt an der Adresse"], c: 3,
+      e: "Technisch ist Glasfaser allen Alternativen überlegen. Der Engpass ist der Bau: Grabungen kosten Zeit und Geld." }
+  ];
+
+  /* ════════ WIDGETS ════════ */
+  var crossRunning = false;
+
+  var WIDGETS = {
+
+    /* — Querschnitt und Schichten — */
+    medium: function (root) {
+      var cross = root.querySelector("#crossCut");
+      var ctx = cross.getContext("2d");
+      var items = Array.prototype.slice.call(root.querySelectorAll(".layers li"));
+      var active = 4;
+      var open = [0, 0, 0, 0, 0];
+      var RINGS = [
+        { r: 0.15, c: "#2EE6FF", n: "Kern", s: "9 µm" },
+        { r: 0.33, c: "#BFEFFF", n: "Mantel", s: "125 µm" },
+        { r: 0.51, c: "#8AA4FF", n: "Coating", s: "250 µm" },
+        { r: 0.73, c: "#FF4FB0", n: "Buffer", s: "900 µm" },
+        { r: 1.00, c: "#FFB43C", n: "Außenmantel", s: "2–3 mm" }
+      ];
+
+      function setActive(l) {
+        active = clamp(Math.round(l), 0, 4);
+        items.forEach(function (li) { li.classList.toggle("is-on", +li.dataset.layer === active); });
+      }
+      items.forEach(function (li) {
+        li.tabIndex = 0;
+        li.addEventListener("click", function () { setActive(+li.dataset.layer); });
+        li.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); setActive(+li.dataset.layer); }
+        });
+      });
+      setActive(4);
+
+      function draw(t) {
+        var W = cross.width, H = cross.height, cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.40;
+        ctx.clearRect(0, 0, W, H);
+        for (var i = RINGS.length - 1; i >= 0; i--) {
+          var L = RINGS[i], o = open[i];
+          var rad = R * L.r * (1 + o * 1.6);
+          var alpha = (1 - o) * (i === active ? 1 : 0.5);
+          if (alpha <= 0.02) continue;
+          ctx.globalAlpha = alpha * 0.15; ctx.fillStyle = L.c;
+          ctx.beginPath(); ctx.arc(cx, cy, rad, 0, 6.2832); ctx.fill();
+          ctx.globalAlpha = alpha; ctx.strokeStyle = L.c;
+          ctx.lineWidth = i === active ? 3 : 1.4;
+          ctx.shadowColor = L.c; ctx.shadowBlur = i === active ? 20 : 5;
+          ctx.beginPath(); ctx.arc(cx, cy, rad, 0, 6.2832); ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+        ctx.globalAlpha = 1;
+        var puls = 0.7 + Math.sin(t / 360) * 0.3;
+        var cr = R * RINGS[0].r * 2;
+        var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, cr);
+        g.addColorStop(0, "rgba(255,255,255," + (0.85 * puls).toFixed(3) + ")");
+        g.addColorStop(0.4, "rgba(46,230,255," + (0.45 * puls).toFixed(3) + ")");
+        g.addColorStop(1, "rgba(46,230,255,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 6.2832); ctx.fill();
+
+        var A = RINGS[active];
+        ctx.fillStyle = A.c; ctx.textAlign = "right";
+        ctx.font = "600 17px Figtree, sans-serif"; ctx.fillText(A.n, W - 16, 30);
+        ctx.fillStyle = "#8E9BB8"; ctx.font = "13px 'JetBrains Mono', monospace";
+        ctx.fillText(A.s, W - 16, 50);
+        ctx.textAlign = "left";
+      }
+
+      crossRunning = true;
+      (function loop(t) {
+        if (!crossRunning) return;
+        for (var i = 0; i < 5; i++) open[i] = lerp(open[i], i > active ? 1 : 0, 0.13);
+        draw(t);
+        requestAnimationFrame(loop);
+      })(0);
+
+      root.querySelectorAll(".pick-opt").forEach(function (b) {
+        b.addEventListener("click", function () {
+          root.querySelectorAll(".pick-opt").forEach(function (x) { x.classList.remove("is-on"); });
+          b.classList.add("is-on");
+          RINGS[0].r = b.dataset.mode === "mm" ? 0.22 : 0.15;
+          RINGS[0].s = b.dataset.mode === "mm" ? "50 µm" : "9 µm";
+        });
+      });
+    },
+
+    /* — FTTx-Balken — */
+    varianten: function (root) {
+      var fib = root.querySelector("#fiberPart");
+      root.querySelectorAll(".opt").forEach(function (b) {
+        b.addEventListener("click", function () {
+          root.querySelectorAll(".opt").forEach(function (x) { x.classList.remove("is-on"); });
+          b.classList.add("is-on");
+          fib.style.width = (+b.dataset.f * 100) + "%";
+        });
+      });
+    },
+
+    /* — Totalreflexion und Modulationsverfahren — */
+    technik: function (root) {
+      var cv = root.querySelector("#tirCanvas");
+      var ctx = cv.getContext("2d");
+      var slider = root.querySelector("#tirAngle");
+      var out = root.querySelector("#tirOut");
+      var msg = root.querySelector("#tirMsg");
+      var W = cv.width, H = cv.height, top = 70, bot = 170, CRIT = 9.4;
+
+      function drawTIR() {
+        var ang = +slider.value, guided = ang <= CRIT;
+        out.textContent = de(ang, 1) + "°";
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "#0d1733"; ctx.fillRect(0, 16, W, H - 32);
+        var g = ctx.createLinearGradient(0, top, 0, bot);
+        g.addColorStop(0, "#123055"); g.addColorStop(0.5, "#0c2044"); g.addColorStop(1, "#123055");
+        ctx.fillStyle = g; ctx.fillRect(0, top, W, bot - top);
+        ctx.strokeStyle = "rgba(191,239,255,.5)"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, top); ctx.lineTo(W, top); ctx.moveTo(0, bot); ctx.lineTo(W, bot); ctx.stroke();
+        ctx.fillStyle = "#8E9BB8"; ctx.font = "12px 'JetBrains Mono', monospace";
+        ctx.fillText("Mantel  n₂ = 1,46", 12, 40);
+        ctx.fillText("Kern  n₁ = 1,48", 12, top + 20);
+
+        var x = 0, y = bot - 8, dir = -1, slope = Math.tan(ang * Math.PI / 180) * 6, bounces = 0;
+        ctx.beginPath(); ctx.moveTo(x, y);
+        ctx.strokeStyle = guided ? "#2EE6FF" : "#FF7A59";
+        ctx.lineWidth = 2.4; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 12;
+        while (x < W && bounces < 40) {
+          var limit = dir < 0 ? top : bot;
+          var nx = x + Math.abs(limit - y) / (slope || 0.0001);
+          if (nx > W) { ctx.lineTo(W, y + dir * (W - x) * slope); break; }
+          ctx.lineTo(nx, limit);
+          if (!guided) { ctx.lineTo(nx + 70, limit + dir * 55); break; }
+          x = nx; y = limit; dir *= -1; bounces++;
+        }
+        ctx.stroke(); ctx.shadowBlur = 0;
+
+        msg.textContent = guided
+          ? de(ang, 1) + "° liegt unter dem Grenzwinkel von 9,4°. Das Licht bleibt im Kern, hier mit " + bounces + " Reflexionen. Der Winkel ist zur Sichtbarkeit sechsfach überhöht gezeichnet."
+          : de(ang, 1) + "° liegt über dem Grenzwinkel von 9,4°. Das Licht tritt in den Mantel aus und geht verloren.";
+        msg.style.color = guided ? "" : "#FF7A59";
+      }
+      slider.addEventListener("input", drawTIR);
+      drawTIR();
+
+      root.querySelectorAll(".wave").forEach(drawWave);
+    },
+
+    /* — Datenraten — */
+    zahlen: function (root) {
+      var host = root.querySelector("#bars");
+      function logW(v) { return clamp((Math.log10(v) - 1) / 3, 0.02, 1) * 100; }
+      function fmt(v) { return v >= 1000 ? (v / 1000) + " Gbit/s" : v + " Mbit/s"; }
+      TECHS.forEach(function (t, i) {
+        var row = document.createElement("div");
+        row.className = "bar-row" + (t.hero ? " is-hero" : "");
+        row.innerHTML = '<div class="name">' + t.n + "<small>" + t.s + "</small></div>" +
+          '<div class="track"><div class="b down"><span>↓ ' + fmt(t.d) + '</span></div>' +
+          '<div class="b up"><span>↑ ' + fmt(t.u) + "</span></div></div>";
+        host.appendChild(row);
         setTimeout(function () {
           row.querySelector(".b.down").style.width = logW(t.d) + "%";
           row.querySelector(".b.up").style.width = logW(t.u) + "%";
-        }, i * 90);
+        }, 60 + i * 80);
       });
-    };
-    new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) showBars(); });
-    }, { threshold: 0.3 }).observe(barsEl);
-  }
+    },
 
-  /* ═══════════════ 8 · DOWNLOAD-RECHNER ═══════════════ */
-  var calcRows = document.getElementById("calcRows");
-  if (calcRows) {
-    var sizeRange = document.getElementById("sizeRange");
-    var sizeOut = document.getElementById("sizeOut");
-    var dir = "down";
-
-    TECHS.forEach(function (t) {
-      var r = document.createElement("div");
-      r.className = "crow" + (t.hero ? " is-hero" : "");
-      r.innerHTML = '<div class="n">' + t.n + '<small>' + t.s + '</small></div>' +
-        '<div class="cb"><i></i></div><div class="t">–</div>';
-      calcRows.appendChild(r);
-    });
-
-    function fmtTime(sec) {
-      if (sec < 1) return Math.round(sec * 1000) + " ms";
-      if (sec < 90) return sec.toFixed(sec < 10 ? 1 : 0).replace(".", ",") + " s";
-      if (sec < 5400) return (sec / 60).toFixed(1).replace(".", ",") + " min";
-      if (sec < 86400) return (sec / 3600).toFixed(1).replace(".", ",") + " h";
-      return (sec / 86400).toFixed(1).replace(".", ",") + " Tage";
-    }
-    function gbFromPos(pos) { return 0.1 * Math.pow(5000, pos / 1000); }
-    function posFromGb(gb) { return 1000 * Math.log(gb / 0.1) / Math.log(5000); }
-
-    function recalc() {
-      var gb = gbFromPos(+sizeRange.value);
-      var txt = gb < 1 ? gb.toFixed(2) : (gb < 10 ? gb.toFixed(1) : Math.round(gb).toString());
-      sizeOut.textContent = txt.replace(".", ",") + " GB";
-      var mbit = gb * 8 * 1024 * 0.94; // Nutzdaten abzüglich Overhead
-      var times = TECHS.map(function (t) { return mbit / (dir === "down" ? t.d : t.u); });
-      var max = Math.max.apply(null, times);
-      calcRows.querySelectorAll(".crow").forEach(function (row, i) {
-        row.querySelector("i").style.width = clamp(times[i] / max * 100, 1.5, 100) + "%";
-        row.querySelector(".t").textContent = fmtTime(times[i]);
-      });
-    }
-    sizeRange.addEventListener("input", function () {
-      document.querySelectorAll(".presets button").forEach(function (b) { b.classList.remove("is-on"); });
-      recalc();
-    });
-    document.querySelectorAll(".presets button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        document.querySelectorAll(".presets button").forEach(function (x) { x.classList.remove("is-on"); });
-        b.classList.add("is-on");
-        sizeRange.value = posFromGb(+b.dataset.gb);
-        recalc();
-      });
-    });
-    document.querySelectorAll(".calc-toggle button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        document.querySelectorAll(".calc-toggle button").forEach(function (x) { x.classList.remove("is-on"); });
-        b.classList.add("is-on"); dir = b.dataset.dir; recalc();
-      });
-    });
-    recalc();
-  }
-
-  /* ═══════════════ 9 · ZÄHLER ═══════════════ */
-  document.querySelectorAll(".num").forEach(function (el) {
-    var done = false;
-    new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (!e.isIntersecting || done) return;
-        done = true;
-        var to = +el.dataset.to, dec = +el.dataset.dec, t0 = performance.now(), dur = 1400;
+    /* — Zähler — */
+    verfuegbarkeit: function (root) {
+      root.querySelectorAll(".num").forEach(function (el, i) {
+        var to = +el.dataset.to, dec = +el.dataset.dec, t0 = performance.now() + i * 90, dur = 1200;
         (function step(now) {
           var p = clamp((now - t0) / dur, 0, 1);
-          var eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = (to * eased).toFixed(dec).replace(".", ",");
+          el.textContent = de(to * (1 - Math.pow(1 - p, 3)), dec);
           if (p < 1) requestAnimationFrame(step);
-        })(t0);
+        })(performance.now());
       });
-    }, { threshold: 0.5 }).observe(el);
-  });
+    },
 
-  /* ═══════════════ 10 · QUIZ ═══════════════ */
-  var QUIZ = [
-    {
-      q: "Warum bleibt das Licht im Kern der Faser?",
-      a: ["Der Mantel ist verspiegelt", "Totalreflexion an der Grenze Kern/Mantel", "Das Licht wird magnetisch geführt", "Der Kern ist ein Vakuum"],
-      c: 1,
-      e: "Der Kern hat mit n ≈ 1,48 eine höhere Brechzahl als der Mantel (n ≈ 1,46). Flach auftreffendes Licht wird deshalb vollständig zurückgeworfen."
-    },
-    {
-      q: "Was unterscheidet FTTH von FTTC?",
-      a: ["FTTH nutzt Multimode-Fasern", "FTTH ist nur für Firmen", "Bei FTTH endet das Glas in der Wohnung, bei FTTC am Kabelverzweiger", "FTTC ist schneller"],
-      c: 2,
-      e: "Bei FTTC läuft die letzte Meile über Kupfer (VDSL) – damit ist bei rund 250 Mbit/s Schluss. FTTH bringt das Glas bis ins Büro."
-    },
-    {
-      q: "Wie viele Teilnehmer teilen sich im PON typischerweise eine Faser?",
-      a: ["2 bis 4", "32 bis 128", "genau 1", "über 1 000"],
-      c: 1,
-      e: "Ein passiver Splitter teilt das Signal auf 32 bis 128 Teilnehmer auf. Wer eine exklusive Faser braucht, nimmt Punkt-zu-Punkt (P2P)."
-    },
-    {
-      q: "Welche Wellenlänge hat im Glas die geringste Dämpfung?",
-      a: ["850 nm", "1310 nm", "1550 nm", "450 nm"],
-      c: 2,
-      e: "Bei 1550 nm liegt die Dämpfung bei etwa 0,2 dB/km – deshalb wird dieses C-Band für lange Strecken und DWDM genutzt."
-    },
-    {
-      q: "Was ist der größte praktische Nachteil von Glasfaser?",
-      a: ["Hohe Latenz", "Störanfällig gegen Elektromagnetik", "Geringe Reichweite", "Teurer, langsamer Tiefbau – Verfügbarkeit hängt an der Adresse"],
-      c: 3,
-      e: "Technisch ist Glasfaser allen Alternativen überlegen. Der Engpass ist der Bau: Grabungen kosten Zeit und Geld."
-    }
-  ];
+    /* — Download-Rechner — */
+    rechner: function (root) {
+      var rows = root.querySelector("#calcRows");
+      var range = root.querySelector("#sizeRange");
+      var out = root.querySelector("#sizeOut");
+      var dir = "down";
 
-  var quizBox = document.getElementById("quiz-box");
-  if (quizBox) {
-    var qi = 0, score = 0, answered = false;
+      TECHS.forEach(function (t) {
+        var r = document.createElement("div");
+        r.className = "crow" + (t.hero ? " is-hero" : "");
+        r.innerHTML = '<div class="n">' + t.n + "<small>" + t.s + '</small></div><div class="cb"><i></i></div><div class="t">–</div>';
+        rows.appendChild(r);
+      });
 
-    function renderQ() {
-      if (qi >= QUIZ.length) {
-        quizBox.innerHTML =
-          '<div class="q">Geschafft!</div>' +
-          '<p class="score">' + score + " / " + QUIZ.length + "</p>" +
-          '<p class="expl">' + (score === QUIZ.length ? "Perfekt – bereit für die Präsentation." :
-            score >= 3 ? "Solide Grundlage. Ein Blick ins Glossar schadet trotzdem nicht." :
-              "Noch mal hochscrollen – die Antworten stehen alle auf dieser Seite.") + "</p>" +
-          '<div class="qfoot"><span></span><button class="next" id="qrestart">Noch einmal</button></div>';
-        document.getElementById("qrestart").addEventListener("click", function () {
-          qi = 0; score = 0; renderQ();
-        });
-        return;
+      function gbFromPos(p) { return 0.1 * Math.pow(5000, p / 1000); }
+      function posFromGb(gb) { return 1000 * Math.log(gb / 0.1) / Math.log(5000); }
+      function fmtTime(s) {
+        if (s < 1) return Math.round(s * 1000) + " ms";
+        if (s < 90) return de(s, s < 10 ? 1 : 0) + " s";
+        if (s < 5400) return de(s / 60, 1) + " min";
+        if (s < 86400) return de(s / 3600, 1) + " h";
+        return de(s / 86400, 1) + " Tage";
       }
-      var item = QUIZ[qi];
-      answered = false;
-      quizBox.innerHTML =
-        '<div class="q">' + (qi + 1) + ". " + item.q + "</div>" +
-        '<div class="opts">' + item.a.map(function (a, i) {
-          return '<button data-i="' + i + '">' + a + "</button>";
-        }).join("") + "</div>" +
-        '<p class="expl" id="qexpl"></p>' +
-        '<div class="qfoot"><span>Frage ' + (qi + 1) + " von " + QUIZ.length + " · " + score + " richtig</span>" +
-        '<button class="next" id="qnext" disabled>Weiter →</button></div>';
-
-      quizBox.querySelectorAll(".opts button").forEach(function (b) {
+      function recalc() {
+        var gb = gbFromPos(+range.value);
+        out.textContent = de(gb, gb < 1 ? 2 : (gb < 10 ? 1 : 0)) + " GB";
+        var mbit = gb * 8 * 1024 * 0.94;
+        var times = TECHS.map(function (t) { return mbit / (dir === "down" ? t.d : t.u); });
+        var max = Math.max.apply(null, times);
+        rows.querySelectorAll(".crow").forEach(function (row, i) {
+          row.querySelector("i").style.width = clamp(times[i] / max * 100, 1.5, 100) + "%";
+          row.querySelector(".t").textContent = fmtTime(times[i]);
+        });
+      }
+      range.addEventListener("input", function () {
+        root.querySelectorAll(".presets button").forEach(function (b) { b.classList.remove("is-on"); });
+        recalc();
+      });
+      root.querySelectorAll(".presets button").forEach(function (b) {
         b.addEventListener("click", function () {
-          if (answered) return;
-          answered = true;
-          var pick = +b.dataset.i;
-          if (pick === item.c) { b.classList.add("ok"); score++; }
-          else {
-            b.classList.add("bad");
-            quizBox.querySelector('.opts button[data-i="' + item.c + '"]').classList.add("ok");
-          }
-          document.getElementById("qexpl").textContent = item.e;
-          document.getElementById("qnext").disabled = false;
-          document.getElementById("qnext").focus();
+          root.querySelectorAll(".presets button").forEach(function (x) { x.classList.remove("is-on"); });
+          b.classList.add("is-on");
+          range.value = posFromGb(+b.dataset.gb);
+          recalc();
         });
       });
-      document.getElementById("qnext").addEventListener("click", function () { qi++; renderQ(); });
-    }
-    renderQ();
-  }
+      root.querySelectorAll(".dir-toggle button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          root.querySelectorAll(".dir-toggle button").forEach(function (x) { x.classList.remove("is-on"); });
+          b.classList.add("is-on"); dir = b.dataset.dir; recalc();
+        });
+      });
+      recalc();
+    },
 
-  /* ═══════════════ 11 · NAVIGATION ═══════════════ */
-  function sectionOrder() {
-    return sections.map(function (s) { return s.id; });
-  }
-  function currentIndex() {
-    var order = sectionOrder(), best = 0, bestD = Infinity;
-    sections.forEach(function (s, i) {
-      var d = Math.abs(s.getBoundingClientRect().top);
-      if (d < bestD) { bestD = d; best = i; }
-    });
-    return best;
-  }
-  document.addEventListener("keydown", function (e) {
-    if (e.target.matches("input, textarea, button")) {
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key.toLowerCase() !== "f") return;
-      if (e.target.matches("input[type=range]")) return;
-    }
-    var k = e.key;
-    if (k === "ArrowRight" || k === "PageDown") {
-      e.preventDefault();
-      var n = sections[Math.min(sections.length - 1, currentIndex() + 1)];
-      n.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-    } else if (k === "ArrowLeft" || k === "PageUp") {
-      e.preventDefault();
-      var p2 = sections[Math.max(0, currentIndex() - 1)];
-      p2.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-    } else if (k.toLowerCase() === "f") {
-      if (!document.fullscreenElement) { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
-      else { document.exitFullscreen && document.exitFullscreen(); }
-    }
-  });
+    /* — Quiz — */
+    quiz: function (root) {
+      var box = root.querySelector("#quizBox");
+      var qi = 0, score = 0, locked = false;
 
-  if (hasGSAP) { ScrollTrigger.refresh(); window.addEventListener("load", function () { ScrollTrigger.refresh(); }); }
+      function render() {
+        if (qi >= QUIZ.length) {
+          box.innerHTML = '<div class="q">Geschafft.</div><p class="score">' + score + " / " + QUIZ.length + "</p>" +
+            '<p class="expl">' + (score === QUIZ.length ? "Alles richtig — bereit für die Präsentation."
+              : score >= 3 ? "Solide Grundlage. Ein Blick ins Glossar schadet trotzdem nicht."
+              : "Die Antworten stehen alle auf diesem Plakat.") + "</p>" +
+            '<div class="qfoot"><span></span><button class="qnext" data-act="restart">Noch einmal</button></div>';
+          box.querySelector("[data-act]").addEventListener("click", function () { qi = 0; score = 0; render(); });
+          return;
+        }
+        var item = QUIZ[qi];
+        locked = false;
+        box.innerHTML = '<div class="q">' + (qi + 1) + ". " + item.q + '</div><div class="opts">' +
+          item.a.map(function (a, i) { return '<button data-i="' + i + '">' + a + "</button>"; }).join("") +
+          '</div><p class="expl"></p><div class="qfoot"><span>Frage ' + (qi + 1) + " von " + QUIZ.length +
+          " · " + score + ' richtig</span><button class="qnext" disabled>Weiter</button></div>';
+
+        var next = box.querySelector(".qnext");
+        box.querySelectorAll(".opts button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            if (locked) return;
+            locked = true;
+            var pick = +b.dataset.i;
+            if (pick === item.c) { b.classList.add("ok"); score++; }
+            else { b.classList.add("bad"); box.querySelector('.opts button[data-i="' + item.c + '"]').classList.add("ok"); }
+            box.querySelector(".expl").textContent = item.e;
+            next.disabled = false;
+            next.focus();
+          });
+        });
+        next.addEventListener("click", function () { qi++; render(); });
+      }
+      render();
+    },
+
+    /* — Glossar — */
+    glossar: function (root) {
+      var dl = root.querySelector("#glossary");
+      GLOSSAR.forEach(function (g) {
+        var d = document.createElement("div");
+        var dt = document.createElement("dt"); dt.textContent = g[0];
+        var dd = document.createElement("dd"); dd.textContent = g[1];
+        d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
+      });
+      var search = root.querySelector("#glossSearch");
+      search.addEventListener("input", function () {
+        var q = search.value.trim().toLowerCase();
+        dl.querySelectorAll("div").forEach(function (d) {
+          d.hidden = q !== "" && d.textContent.toLowerCase().indexOf(q) === -1;
+        });
+      });
+    }
+  };
+
+  /* — Modulationsgrafiken — */
+  function drawWave(cv) {
+    var c = cv.getContext("2d"), w = cv.width, h = cv.height, kind = cv.dataset.wave;
+    var CY = "#2EE6FF", MG = "#FF4FB0", AM = "#FFB43C", MT = "#5CF2A6";
+    c.clearRect(0, 0, w, h);
+    c.lineWidth = 2.2; c.lineJoin = "round";
+
+    if (kind === "nrz") {
+      var bits = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0];
+      c.strokeStyle = CY; c.beginPath();
+      bits.forEach(function (b, i) {
+        var x0 = i / bits.length * w, x1 = (i + 1) / bits.length * w, y = b ? 18 : h - 16;
+        i === 0 ? c.moveTo(x0, y) : c.lineTo(x0, y);
+        c.lineTo(x1, y);
+      });
+      c.stroke();
+    } else if (kind === "pam4") {
+      var lv = [3, 1, 2, 0, 3, 2, 1, 3, 0, 2];
+      c.strokeStyle = "rgba(140,164,214,.2)"; c.lineWidth = 1;
+      [0, 1, 2, 3].forEach(function (l) {
+        var y = h - 16 - l / 3 * (h - 34);
+        c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke();
+      });
+      c.lineWidth = 2.2; c.strokeStyle = MG; c.beginPath();
+      lv.forEach(function (l, i) {
+        var x0 = i / lv.length * w, x1 = (i + 1) / lv.length * w, y = h - 16 - l / 3 * (h - 34);
+        i === 0 ? c.moveTo(x0, y) : c.lineTo(x0, y);
+        c.lineTo(x1, y);
+      });
+      c.stroke();
+    } else if (kind === "qam") {
+      c.strokeStyle = "rgba(140,164,214,.25)"; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(w / 2, 6); c.lineTo(w / 2, h - 6); c.moveTo(12, h / 2); c.lineTo(w - 12, h / 2); c.stroke();
+      for (var a = 0; a < 4; a++) for (var b2 = 0; b2 < 4; b2++) {
+        c.fillStyle = (a + b2) % 2 ? CY : MG;
+        c.beginPath(); c.arc(w / 2 + (a - 1.5) * 24, h / 2 + (b2 - 1.5) * 15, 3.2, 0, 6.3); c.fill();
+      }
+      c.fillStyle = "#8E9BB8"; c.font = "10px 'JetBrains Mono', monospace";
+      c.fillText("I", w - 16, h / 2 - 6); c.fillText("Q", w / 2 + 6, 14);
+    } else if (kind === "wdm") {
+      [[CY, 0], [MG, 1], [AM, 2], [MT, 3]].forEach(function (pr) {
+        c.strokeStyle = pr[0]; c.beginPath();
+        for (var x = 0; x <= w; x += 2) {
+          var y = h / 2 + Math.sin(x / w * Math.PI * (6 + pr[1] * 3)) * (h / 2 - 18) * 0.5;
+          x === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+        }
+        c.stroke();
+      });
+    } else if (kind === "tdma") {
+      var slots = [CY, MG, AM, CY, MT, MG, CY, AM];
+      c.globalAlpha = 0.85;
+      slots.forEach(function (col, i) {
+        var x0 = i / slots.length * w + 2, bw = w / slots.length - 4, hh = 14 + (i % 3) * 14;
+        c.fillStyle = col; c.fillRect(x0, h - 14 - hh, bw, hh);
+      });
+      c.globalAlpha = 1;
+      c.fillStyle = "#8E9BB8"; c.font = "10px 'JetBrains Mono', monospace";
+      c.fillText("ONT 1   ONT 2   ONT 3 …", 6, 13);
+    } else if (kind === "duplex") {
+      c.strokeStyle = "rgba(140,164,214,.2)"; c.lineWidth = 9; c.lineCap = "round";
+      c.beginPath(); c.moveTo(14, h / 2); c.lineTo(w - 14, h / 2); c.stroke();
+      c.lineWidth = 2.2; c.lineCap = "butt";
+      [[CY, -11, 9, 5], [MG, 12, 6, 4]].forEach(function (cfg) {
+        c.strokeStyle = cfg[0]; c.beginPath();
+        for (var x = 14; x <= w - 14; x += 2) {
+          var y = h / 2 + cfg[1] + Math.sin(x / cfg[2]) * cfg[3];
+          x === 14 ? c.moveTo(x, y) : c.lineTo(x, y);
+        }
+        c.stroke();
+      });
+      c.fillStyle = "#8E9BB8"; c.font = "10px 'JetBrains Mono', monospace";
+      c.fillText("1577 nm ↓", 16, 16); c.fillText("1270 nm ↑", 16, h - 6);
+    }
+  }
 })();

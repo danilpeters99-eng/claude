@@ -1,52 +1,50 @@
-# Glasfaser · Lichtgeschwindigkeit
+# Glasfaser für Teach:In
 
-Interaktive Scroll-Präsentation zur WAN-Anschlussart **LWL / Glasfaser** für das
-Schulungs- und Testzentrum Teach:In.
+Interaktives Plakat zur WAN-Anschlussart **LWL / Glasfaser** für das
+Schulungs- und Testzentrum Teach:In. Zwei Ansichten, alle Details auf Klick.
 
 ## Starten
 
-Die Seite ist statisch – einfach `index.html` im Browser öffnen. Für die
-Web-Schriften wird eine Internetverbindung benötigt; ohne sie greift ein
-Fallback-Schriftsatz.
+Die Seite ist statisch. `index.html` im Browser öffnen genügt, die
+Bibliotheken liegen lokal bei. Für die Web-Schriften wird eine
+Internetverbindung gebraucht, sonst greift ein Fallback.
 
 ```
 python3 -m http.server 8000     # optional, dann http://localhost:8000
 ```
 
-## Steuerung während der Präsentation
-
-| Taste / Geste | Wirkung |
-| --- | --- |
-| Scrollen | Treibt alle Animationen an |
-| ← / → | Ein Kapitel zurück / vor |
-| F | Vollbild an/aus |
-| Klick auf markierte Begriffe | Glossar-Popup |
-
 ## Aufbau
 
-- `index.html` – Inhalt und Struktur aller Kapitel
-- `css/style.css` – Design-System (dunkle Neon-Palette, ein Theme)
-- `js/main.js` – 3D-Szene, Scroll-Choreografie, Querschnitt, Rechner, Quiz
-- `js/vendor/` – three.js r158 und GSAP 3.12.5 mit ScrollTrigger (lokal eingebunden)
+**Ansicht 1 — Strecke.** Eine 3D-Szene, in der die Kamera in einem dunklen
+Netzraum steht und die Faser entlangblickt. Sechs Stationen stehen als
+beleuchtete Schränke im Raum: Router mit ONT, Gf-AP, Netzverteiler,
+Splitter, PoP mit OLT und Backbone. Jede Station trägt einen Klickpunkt,
+der im Raum verankert ist und beim Scrollen mitwandert. Ein Klick öffnet
+die Erklärung.
 
-## Inhaltliche Kapitel
+**Ansicht 2 — Plakat.** Zehn Kacheln zu Medium, FTTx-Varianten,
+Funktionsweise, Kennzahlen, Vor- und Nachteilen, Verfügbarkeit, Kosten,
+Download-Rechner, Quiz und Glossar. Jede Kachel öffnet ein Popup mit dem
+vollständigen Inhalt. Die Quellen liegen als Leiste am unteren Rand.
 
-1. Übertragungsstrecke (Schaubild mit Erläuterung)
-2. Medium und seine Eigenschaften (Querschnitt, Singlemode/Multimode)
-3. Varianten: FTTC / FTTdp / FTTB / FTTH, PON vs. P2P
-4. Funktionsweise: Totalreflexion, Sender/Empfänger, Modulationsverfahren
-5. Datenraten, Frequenzen, Bandbreiten, Vor- und Nachteile
-6. Download-Rechner im Vergleich der sechs Anschlussarten
-7. Verfügbarkeit in Deutschland, Berlin und beim Kunden
-8. Kosten
-9. Quiz fürs Plenum
-10. Glossar
-11. Quellen
+## Steuerung
 
-Stand der Zahlen: 15.09.2026. Quellen stehen am Fuß der Seite.
+| Eingabe | Wirkung |
+| --- | --- |
+| Scrollen | Kamera fährt durch den Raum, wechselt zur Plakatansicht |
+| Strecke / Plakat oben | Direkt zwischen den Ansichten springen |
+| ← / → | Ansicht wechseln |
+| Klick auf Punkt oder Kachel | Popup mit Details |
+| Esc | Popup schließen |
+| F | Vollbild |
 
-## Gehostete Fassung
+## Dateien
 
-`artifact-page.html` ist eine aus `index.html` erzeugte Variante ohne
-`<html>`/`<head>`/`<body>`-Rahmen, die als Claude-Artifact veröffentlicht wird.
-Inhaltlich identisch, sie bindet dieselben Dateien aus `css/` und `js/` ein.
+- `index.html` — Struktur beider Ansichten, alle Popup-Inhalte als `<template>`
+- `css/style.css` — Design-System, ein dunkles Theme
+- `js/main.js` — 3D-Raum, Projektion der Klickpunkte, Popups, Widgets
+- `js/vendor/` — three.js r158 und GSAP 3.12.5, lokal eingebunden
+- `artifact-page.html` — aus `index.html` erzeugte Fassung ohne Dokumentrahmen
+  für die gehostete Version. Nicht direkt öffnen.
+
+Stand der Zahlen: 15.09.2026. Belege stehen im Popup "Quellen & Stand".

@@ -5,443 +5,467 @@
 <link rel="stylesheet" href="css/style.css">
 
 
-<canvas id="fiber3d" aria-hidden="true"></canvas>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
 <header class="topbar">
-  <a class="brand" href="#hero"><span class="dot"></span> Teach:In · WAN-Anbindung</a>
-  <span class="topbar-hint">↓ Scrollen · ←/→ Kapitel · F Vollbild</span>
+  <span class="brand"><i class="pip"></i>Teach:In · WAN-Anbindung · LWL</span>
+  <nav class="stage-nav" aria-label="Ansicht wechseln">
+    <button id="navRoom" class="is-on" data-stage="0">Strecke</button>
+    <button id="navPoster" data-stage="1">Plakat</button>
+  </nav>
+  <span class="legend">Klicken für Details · ←/→ Ansicht · F Vollbild</span>
 </header>
 
-<nav class="dots" aria-label="Kapitel">
-  <a href="#hero" data-label="Start"></a>
-  <a href="#strecke" data-label="Übertragungsstrecke"></a>
-  <a href="#medium" data-label="Medium"></a>
-  <a href="#varianten" data-label="Varianten"></a>
-  <a href="#technik" data-label="Funktionsweise"></a>
-  <a href="#zahlen" data-label="Zahlen"></a>
-  <a href="#rechner" data-label="Rechner"></a>
-  <a href="#verfuegbarkeit" data-label="Verfügbarkeit"></a>
-  <a href="#kosten" data-label="Kosten"></a>
-  <a href="#quiz" data-label="Quiz"></a>
-  <a href="#glossar" data-label="Glossar"></a>
-  <a href="#quellen" data-label="Quellen"></a>
-</nav>
+<!-- ══════════ SCREEN 1 · DER RAUM ══════════ -->
+<section class="stage stage-room is-on" id="stage0" aria-label="Übertragungsstrecke im Raum">
+  <div class="room-intro">
+    <p class="eyebrow">Anschlussart 3 von 6 — DSL · Kabel · <b>LWL</b> · Richtfunk · LTE/5G · Satellit</p>
+    <h1>Glas<span>faser</span></h1>
+    <p class="claim">Ein Haar aus Quarzglas, in dem Licht die Daten trägt. Du blickst die Strecke entlang, vom Router im Teach:In bis zum Internet-Knoten.</p>
+    <dl class="keyfacts">
+      <div><dt>Datenrate</dt><dd>10 Gbit/s symmetrisch</dd></div>
+      <div><dt>Dämpfung</dt><dd>0,2 dB/km bei 1550 nm</dd></div>
+      <div><dt>Ausbau DE</dt><dd>62 % Homes Passed</dd></div>
+    </dl>
+  </div>
+  <div class="depth-cue"><span class="mono">0 m</span><i></i><span class="mono">≈ 20 km</span></div>
+</section>
 
-<main>
+<!-- Klickpunkte werden im 3D-Raum positioniert -->
+<div class="hotspots" id="hotspots" aria-label="Stationen der Übertragungsstrecke"></div>
 
-<!-- ───────────────── HERO ───────────────── -->
-<section id="hero" class="sec hero">
-  <div class="hero-inner">
-    <p class="eyebrow">Anschlussart 3 von 6 · DSL · Kabel · <b>LWL</b> · Richtfunk · LTE/5G · Satellit</p>
-    <h1 class="hero-title"><span class="line">Glas</span><span class="line accent">faser</span></h1>
-    <p class="hero-sub">Daten reisen als Lichtpulse durch ein Haar aus Quarzglas.<br>Symmetrisch, gigabitschnell und praktisch unbegrenzt ausbaubar.</p>
-    <div class="hero-stats">
-      <div><b class="mono">10 Gbit/s</b><span>XGS-PON, symmetrisch</span></div>
-      <div><b class="mono">0,2 dB/km</b><span>Dämpfung bei 1550 nm</span></div>
-      <div><b class="mono">62 %</b><span>der Haushalte in DE erschlossen</span></div>
+<!-- ══════════ SCREEN 2 · DAS PLAKAT ══════════ -->
+<section class="stage stage-poster" id="stage1" aria-label="Informationsplakat">
+  <div class="poster">
+    <header class="poster-head">
+      <h2>Alles über Glasfaser</h2>
+      <p>Jede Kachel öffnet die Details. Zehn Themen, ein Blick.</p>
+    </header>
+
+    <div class="grid">
+      <button class="tile t-wide" data-modal="medium" style="--c:#2EE6FF">
+        <span class="tile-no mono">01</span>
+        <b>Das Medium</b>
+        <span class="tile-sub">Kern, Mantel, Coating, Buffer — Aufbau und Eigenschaften der Faser</span>
+        <svg class="viz" viewBox="0 0 120 40" aria-hidden="true">
+          <g fill="none" stroke-width="2">
+            <circle cx="20" cy="20" r="17" stroke="#FFB43C"/><circle cx="20" cy="20" r="12" stroke="#FF4FB0"/>
+            <circle cx="20" cy="20" r="7.5" stroke="#8AA4FF"/><circle cx="20" cy="20" r="3.5" stroke="#2EE6FF"/>
+          </g>
+          <path d="M44 20 H116" stroke="#2EE6FF" stroke-width="2" stroke-dasharray="3 7" opacity=".7"/>
+        </svg>
+      </button>
+
+      <button class="tile" data-modal="varianten" style="--c:#5CF2A6">
+        <span class="tile-no mono">02</span>
+        <b>FTTx-Varianten</b>
+        <span class="tile-sub">Wie weit reicht das Glas?</span>
+        <svg class="viz" viewBox="0 0 120 26" aria-hidden="true">
+          <rect x="0" y="9" width="92" height="8" rx="4" fill="#2EE6FF"/>
+          <rect x="92" y="9" width="28" height="8" rx="4" fill="#C97B3A"/>
+        </svg>
+      </button>
+
+      <button class="tile" data-modal="technik" style="--c:#FF4FB0">
+        <span class="tile-no mono">03</span>
+        <b>Funktionsweise</b>
+        <span class="tile-sub">Totalreflexion &amp; Modulation</span>
+        <svg class="viz" viewBox="0 0 120 26" aria-hidden="true">
+          <path d="M0 22 L24 4 L48 22 L72 4 L96 22 L120 4" fill="none" stroke="#FF4FB0" stroke-width="2"/>
+        </svg>
+      </button>
+
+      <button class="tile t-wide" data-modal="zahlen" style="--c:#FFB43C">
+        <span class="tile-no mono">04</span>
+        <b>Raten &amp; Frequenzen</b>
+        <span class="tile-sub">Glasfaser im Vergleich zu den fünf anderen Anschlussarten</span>
+        <svg class="viz" viewBox="0 0 120 40" aria-hidden="true">
+          <g fill="#FFB43C">
+            <rect x="0" y="4" width="118" height="6" rx="3"/>
+            <rect x="0" y="14" width="74" height="6" rx="3" opacity=".7"/>
+            <rect x="0" y="24" width="48" height="6" rx="3" opacity=".5"/>
+            <rect x="0" y="34" width="22" height="6" rx="3" opacity=".35"/>
+          </g>
+        </svg>
+      </button>
+
+      <button class="tile" data-modal="bilanz" style="--c:#5CF2A6">
+        <span class="tile-no mono">05</span>
+        <b>Vor- &amp; Nachteile</b>
+        <span class="tile-sub">Wofür es sich lohnt</span>
+        <span class="viz-text mono"><i class="up">+ 4</i><i class="down">− 4</i></span>
+      </button>
+
+      <button class="tile" data-modal="verfuegbarkeit" style="--c:#2EE6FF">
+        <span class="tile-no mono">06</span>
+        <b>Verfügbarkeit</b>
+        <span class="tile-sub">Deutschland, Berlin, Teach:In</span>
+        <span class="viz-text mono"><i class="big">53,4 %</i><em>Berlin</em></span>
+      </button>
+
+      <button class="tile" data-modal="kosten" style="--c:#FFB43C">
+        <span class="tile-no mono">07</span>
+        <b>Kosten</b>
+        <span class="tile-sub">Tarife und Hausanschluss</span>
+        <span class="viz-text mono"><i class="big">46–71 €</i><em>pro Monat</em></span>
+      </button>
+
+      <button class="tile t-live" data-modal="rechner" style="--c:#FF4FB0">
+        <span class="tile-no mono">08</span>
+        <b>Download-Rechner</b>
+        <span class="tile-sub">Dauer im Vergleich</span>
+        <span class="live-badge mono">interaktiv</span>
+      </button>
+
+      <button class="tile t-live" data-modal="quiz" style="--c:#5CF2A6">
+        <span class="tile-no mono">09</span>
+        <b>Quiz fürs Plenum</b>
+        <span class="tile-sub">Fünf Fragen</span>
+        <span class="live-badge mono">interaktiv</span>
+      </button>
+
+      <button class="tile" data-modal="glossar" style="--c:#8AA4FF">
+        <span class="tile-no mono">10</span>
+        <b>Glossar</b>
+        <span class="tile-sub">26 Grundbegriffe</span>
+        <span class="viz-text mono"><i class="big">A–Z</i></span>
+      </button>
     </div>
-    <a class="scroll-cue" href="#strecke"><span></span>Los geht's</a>
+
+    <footer class="poster-foot">
+      <button class="src-btn" data-modal="quellen">Quellen &amp; Stand</button>
+      <span>BREKO Marktanalyse 2026 · Senatsverwaltung Berlin · Deutsche Telekom · ITU-T G.984 / G.9807.1 · Stand 15.09.2026</span>
+    </footer>
   </div>
 </section>
 
-<!-- ───────────────── 1 ÜBERTRAGUNGSSTRECKE ───────────────── -->
-<section id="strecke" class="sec pin-sec">
-  <div class="pin-wrap">
-    <div class="sec-head">
-      <p class="eyebrow">01 · Schaubild</p>
-      <h2>Die Übertragungs&shy;strecke</h2>
-      <p class="lead">Vom Router im Teach:In bis ins Internet: Zwischen Kunde und Vermittlungsstelle liegt bei <button class="gl" data-g="ftth">FTTH</button> durchgehend Glas – kein einziges Stück Kupfer.</p>
+<div id="scrollspace" aria-hidden="true"></div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div class="modal-wrap" id="modalWrap" hidden>
+  <div class="modal-bg" id="modalBg"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-x" id="modalX" aria-label="Schließen">×</button>
+    <p class="eyebrow" id="modalEyebrow"></p>
+    <h3 id="modalTitle"></h3>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ══════════ INHALTE ══════════ -->
+
+<template data-t="ont">
+  <p class="lead">Der ONT ist das Glasfaser-Modem. Er wandelt die elektrischen Ethernet-Frames des Routers in Lichtpulse um. Ab hier ist die Strecke durchgehend Glas.</p>
+  <dl class="spec">
+    <div><dt>Richtung</dt><dd>elektrisch → optisch, Laserdiode</dd></div>
+    <div><dt>Schnittstelle</dt><dd>SC/APC-Stecker zur Faser, RJ45 oder SFP zum Router</dd></div>
+    <div><dt>Wellenlängen</dt><dd>sendet 1270 nm, empfängt 1577 nm (XGS-PON)</dd></div>
+    <div><dt>Achtung</dt><dd>braucht Strom — ohne USV bei Stromausfall kein Anschluss</dd></div>
+  </dl>
+  <p class="hint">Für Teach:In heißt das: ONT und Router gehören an die unterbrechungsfreie Stromversorgung im Serverraum.</p>
+</template>
+
+<template data-t="gfap">
+  <p class="lead">Der Glasfaser-Abschlusspunkt im Keller ist die Grenze zwischen dem Netz des Anbieters und der Inhouse-Verkabelung.</p>
+  <dl class="spec">
+    <div><dt>Aufbau</dt><dd>Wandgehäuse mit Spleißkassette und Kupplung</dd></div>
+    <div><dt>Strecke zur Straße</dt><dd>50 bis 300 m über den Hausübergabepunkt</dd></div>
+    <div><dt>Inhouse</dt><dd>eigene Faser bis in den Raum ist FTTH, Kupfer ab Keller ist FTTB</dd></div>
+    <div><dt>Verantwortung</dt><dd>ab hier Sache des Eigentümers, nicht des Anbieters</dd></div>
+  </dl>
+</template>
+
+<template data-t="nvt">
+  <p class="lead">Der graue Kasten am Gehweg. Hier laufen die Fasern ganzer Straßenzüge zusammen und werden gespleißt.</p>
+  <dl class="spec">
+    <div><dt>Spleißen</dt><dd>Verschweißen zweier Fasern im Lichtbogen, Verlust unter 0,1 dB</dd></div>
+    <div><dt>Kapazität</dt><dd>je nach Typ 100 bis 1 000 Fasern</dd></div>
+    <div><dt>Verlegung</dt><dd>Mikrorohre im Erdreich, Fasern werden eingeblasen</dd></div>
+    <div><dt>Passiv</dt><dd>keine Elektronik, kein Stromanschluss nötig</dd></div>
+  </dl>
+</template>
+
+<template data-t="splitter">
+  <p class="lead">Ein stromloser Glaskörper teilt eine Faser optisch auf viele Teilnehmer auf. Das macht den Massenausbau bezahlbar.</p>
+  <div class="split-vis" aria-hidden="true">
+    <svg viewBox="0 0 320 120">
+      <path d="M8 60 H120" stroke="#2EE6FF" stroke-width="3" fill="none"/>
+      <rect x="120" y="40" width="26" height="40" rx="5" fill="#0f1533" stroke="#2EE6FF" stroke-width="2"/>
+      <g stroke="#2EE6FF" stroke-width="1.6" fill="none" opacity=".75">
+        <path d="M146 60 C200 60 220 14 312 14"/><path d="M146 60 C200 60 220 37 312 37"/>
+        <path d="M146 60 C200 60 220 60 312 60"/><path d="M146 60 C200 60 220 83 312 83"/>
+        <path d="M146 60 C200 60 220 106 312 106"/>
+      </g>
+      <text x="8" y="44" fill="#97A3BF" font-size="12" font-family="monospace">1 Faser</text>
+      <text x="246" y="120" fill="#97A3BF" font-size="12" font-family="monospace">bis 128×</text>
+    </svg>
+  </div>
+  <dl class="spec">
+    <div><dt>Teilungsverhältnis</dt><dd>1:32 typisch, bis 1:128 möglich</dd></div>
+    <div><dt>Preis</dt><dd>jede Teilung kostet Licht: 1:32 bedeutet rund 17 dB Verlust</dd></div>
+    <div><dt>Alternative</dt><dd>P2P mit eigener Faser je Kunde, teurer, dafür garantierte Bandbreite</dd></div>
+  </dl>
+</template>
+
+<template data-t="olt">
+  <p class="lead">Im Point of Presence sitzt das Gegenstück zum ONT. Ein OLT bedient mehrere tausend Anschlüsse und übergibt an das Kernnetz.</p>
+  <dl class="spec">
+    <div><dt>Downstream</dt><dd>Broadcast an alle ONTs, AES-verschlüsselt je Teilnehmer</dd></div>
+    <div><dt>Upstream</dt><dd>TDMA: jedes ONT sendet nur im zugewiesenen Zeitschlitz</dd></div>
+    <div><dt>Reichweite</dt><dd>bis 20 km zwischen OLT und Kunde</dd></div>
+    <div><dt>Leistungsbudget</dt><dd>bei GPON rund 28 dB für Faser, Spleiße und Splitter</dd></div>
+  </dl>
+</template>
+
+<template data-t="backbone">
+  <p class="lead">Ab dem PoP läuft der Verkehr über Weitverkehrsstrecken zum Internet-Knoten, in Deutschland meist DE-CIX Frankfurt.</p>
+  <dl class="spec">
+    <div><dt>DWDM</dt><dd>bis 96 Wellenlängen auf einer Faser, 100-GHz-Raster im C-Band</dd></div>
+    <div><dt>Pro Wellenlänge</dt><dd>400 bis 800 Gbit/s mit kohärenter Modulation</dd></div>
+    <div><dt>Verstärkung</dt><dd>EDFA alle 80 bis 100 km, rein optisch ohne Umwandlung</dd></div>
+    <div><dt>Latenz</dt><dd>rund 5 µs pro Kilometer Faser</dd></div>
+  </dl>
+</template>
+
+<template data-t="medium">
+  <p class="lead">Klicke eine Schicht an, um sie freizulegen. Der eigentliche Lichtleiter ist dünner als ein zehntel Haar.</p>
+  <div class="medium-split">
+    <div class="cross-box">
+      <canvas id="crossCut" width="520" height="360" aria-label="Querschnitt der Glasfaser"></canvas>
+      <span class="cross-label mono">Querschnitt · nicht maßstabsgetreu</span>
     </div>
+    <ul class="layers" id="layerList">
+      <li data-layer="4" style="--c:#FFB43C"><b>Außenmantel</b><span>2–3 mm · PE oder LSZH. Schutz gegen Nässe, UV, Nager, Zug.</span></li>
+      <li data-layer="3" style="--c:#FF4FB0"><b>Buffer + Aramid</b><span>900 µm · Zugentlastung aus Aramidfasern.</span></li>
+      <li data-layer="2" style="--c:#8AA4FF"><b>Coating</b><span>250 µm · Acrylat-Lack gegen Mikrorisse, hält die Faser biegbar.</span></li>
+      <li data-layer="1" style="--c:#BFEFFF"><b>Mantel (Cladding)</b><span>125 µm · Quarzglas, n ≈ 1,46. Rund 1 % niedriger als der Kern.</span></li>
+      <li data-layer="0" style="--c:#2EE6FF"><b>Kern (Core)</b><span>9 µm · dotiertes Quarzglas, n ≈ 1,48. Hier läuft das Licht.</span></li>
+    </ul>
+  </div>
+  <div class="two-up">
+    <dl class="spec">
+      <div><dt>Material</dt><dd>Quarzglas, dielektrisch — kein Metall</dd></div>
+      <div><dt>Dämpfung</dt><dd>0,35 dB/km bei 1310 nm · 0,2 dB/km bei 1550 nm</dd></div>
+      <div><dt>Ausbreitung</dt><dd>rund 200 000 km/s im Glas</dd></div>
+      <div><dt>Störfestigkeit</dt><dd>immun gegen EMV, kein Übersprechen, keine Erdung</dd></div>
+      <div><dt>Grenze</dt><dd>Biegeradius ab 30 mm, empfindlich gegen Staub am Stecker</dd></div>
+    </dl>
+    <div class="pick">
+      <button class="pick-opt is-on" data-mode="sm"><b>Singlemode OS2</b><span>9 µm Kern · ein Lichtweg · Laser · bis 80 km · Standard für FTTH</span></button>
+      <button class="pick-opt" data-mode="mm"><b>Multimode OM3–OM5</b><span>50 µm Kern · viele Lichtwege · LED/VCSEL · bis 550 m · Gebäude-LAN</span></button>
+    </div>
+  </div>
+</template>
 
-    <div class="strecke-stage">
-      <svg class="strecke-svg" viewBox="0 0 1200 300" role="img" aria-label="Schaubild der Übertragungsstrecke von Teach:In bis zum Internet">
-        <defs>
-          <linearGradient id="gPath" x1="0" x2="1"><stop offset="0" stop-color="#2EE6FF"/><stop offset="1" stop-color="#FF4FB0"/></linearGradient>
-          <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        </defs>
-        <path class="path-bg" d="M110 150 H1090" />
-        <path class="path-light" id="pathLight" d="M110 150 H1090" />
-        <circle class="path-pulse" r="6" />
+<template data-t="varianten">
+  <p class="lead">FTTx sagt, wo die Glasfaser endet und ab wo wieder Kupfer übernimmt. Je näher am Endgerät, desto höher die mögliche Rate.</p>
+  <div class="fttx">
+    <div class="fttx-scale mono"><span>PoP</span><span>Kabelverzweiger</span><span>Gehweg</span><span>Keller</span><span>Büro</span></div>
+    <div class="fttx-bar"><i id="fiberPart"></i><em id="copperPart"></em></div>
+    <div class="fttx-legend mono"><span><i class="sw fib"></i>Glasfaser</span><span><i class="sw cop"></i>Kupfer</span></div>
+  </div>
+  <div class="opt-row" id="fttxRow">
+    <button class="opt" data-f="0.25"><b>FTTC</b><i>to the Curb</i><span>Glas bis zum Kabelverzweiger, dann VDSL. Ende bei rund 250 Mbit/s.</span></button>
+    <button class="opt" data-f="0.5"><b>FTTdp</b><i>to the distribution point</i><span>Glas bis kurz vors Haus, letzte Meter mit G.fast. In Deutschland selten.</span></button>
+    <button class="opt" data-f="0.78"><b>FTTB</b><i>to the Building</i><span>Glas bis in den Keller, im Haus Kupfer. Häufig im Mehrfamilienhaus.</span></button>
+    <button class="opt is-on" data-f="1"><b>FTTH</b><i>to the Home</i><span>Glas bis ins Büro. Volle Leistung — das Ziel für Teach:In.</span></button>
+  </div>
+  <div class="two-up">
+    <div class="panel">
+      <h4>PON — geteilt und passiv</h4>
+      <p>Eine Faser vom OLT, per Splitter auf viele Teilnehmer verteilt. Günstig und stromlos im Feld, deshalb der Standard im Massenausbau.</p>
+      <table class="mono">
+        <tr><th>Standard</th><th>↓</th><th>↑</th><th>Wellenlängen</th></tr>
+        <tr><td>GPON</td><td>2,5 G</td><td>1,25 G</td><td>1490 / 1310 nm</td></tr>
+        <tr><td>XGS-PON</td><td>10 G</td><td>10 G</td><td>1577 / 1270 nm</td></tr>
+        <tr><td>50G-PON</td><td>50 G</td><td>25 G</td><td>1342 / 1286 nm</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <h4>P2P — exklusiv und aktiv</h4>
+      <p>Eigene Faser bis zum PoP. Garantierte symmetrische Bandbreite, beliebig aufrüstbar von 1 bis 100 GbE. Typisch für Geschäftskunden mit Service-Level-Vereinbarung.</p>
+      <p class="chips"><span>Dark Fiber</span><span>Ethernet-Standleitung</span><span>SLA 99,9 %</span></p>
+    </div>
+  </div>
+</template>
 
-        <g class="node" data-i="0" transform="translate(110 150)">
-          <circle r="42"/><text class="ico" y="8">🏢</text><text class="lbl" y="78">Teach:In</text><text class="sub" y="98">Router + ONT</text>
-        </g>
-        <g class="node" data-i="1" transform="translate(306 150)">
-          <circle r="42"/><text class="ico" y="8">🔌</text><text class="lbl" y="78">Gf-AP / APL</text><text class="sub" y="98">Hausanschluss</text>
-        </g>
-        <g class="node" data-i="2" transform="translate(502 150)">
-          <circle r="42"/><text class="ico" y="8">🗄️</text><text class="lbl" y="78">Nvt</text><text class="sub" y="98">Netzverteiler</text>
-        </g>
-        <g class="node" data-i="3" transform="translate(698 150)">
-          <circle r="42"/><text class="ico" y="8">🔀</text><text class="lbl" y="78">Splitter</text><text class="sub" y="98">passiv, 1:32</text>
-        </g>
-        <g class="node" data-i="4" transform="translate(894 150)">
-          <circle r="42"/><text class="ico" y="8">🏭</text><text class="lbl" y="78">PoP / OLT</text><text class="sub" y="98">Vermittlung</text>
-        </g>
-        <g class="node" data-i="5" transform="translate(1090 150)">
-          <circle r="42"/><text class="ico" y="8">🌐</text><text class="lbl" y="78">Backbone</text><text class="sub" y="98">Internet</text>
-        </g>
-        <text class="dist" x="208" y="130">Inhouse</text>
-        <text class="dist" x="404" y="130">≈ 50–300 m</text>
-        <text class="dist" x="600" y="130">Verteilnetz</text>
-        <text class="dist" x="796" y="130">bis 20 km</text>
-        <text class="dist" x="992" y="130">DWDM</text>
-      </svg>
+<template data-t="technik">
+  <p class="lead">Ein Laser schaltet Licht ein und aus, Milliarden Mal pro Sekunde. Weil der Kern optisch dichter ist als der Mantel, wird das Licht an der Grenze vollständig zurückgeworfen und bleibt gefangen.</p>
+  <div class="two-up">
+    <div class="panel">
+      <h4>Totalreflexion ausprobieren</h4>
+      <canvas id="tirCanvas" width="640" height="240" aria-label="Simulation der Totalreflexion"></canvas>
+      <label class="slider" for="tirAngle">Einfallswinkel zur Faserachse <output id="tirOut" class="mono">6,0°</output>
+        <input type="range" id="tirAngle" min="1" max="20" value="6" step="0.5">
+      </label>
+      <p class="hint" id="tirMsg"></p>
+    </div>
+    <div class="panel">
+      <h4>Sender und Empfänger</h4>
+      <dl class="spec">
+        <div><dt>Sender</dt><dd>Laserdiode bei Singlemode, LED oder VCSEL bei Multimode</dd></div>
+        <div><dt>Fenster</dt><dd>850 nm im LAN, 1310 nm im O-Band, 1550 nm im C-Band</dd></div>
+        <div><dt>Empfänger</dt><dd>Photodiode, optisch zurück nach elektrisch</dd></div>
+        <div><dt>Frequenz</dt><dd>1550 nm entspricht rund 193 THz, nutzbar sind etwa 50 THz</dd></div>
+        <div><dt>Budget</dt><dd>Sendeleistung minus Dämpfung, Spleiß- und Steckerverluste muss über der Empfängerschwelle bleiben</dd></div>
+      </dl>
+    </div>
+  </div>
+  <h4 class="sub">Übertragungs- und Modulationsverfahren</h4>
+  <div class="mods">
+    <article><canvas class="wave" data-wave="nrz" width="300" height="80"></canvas><b>NRZ / OOK</b><span>Licht an ist 1, aus ist 0. Einfach und robust, genutzt bis 10 Gbit/s.</span></article>
+    <article><canvas class="wave" data-wave="pam4" width="300" height="80"></canvas><b>PAM4</b><span>Vier Helligkeitsstufen, 2 Bit pro Symbol. Für 50G-PON und 400G-Ethernet.</span></article>
+    <article><canvas class="wave" data-wave="qam" width="300" height="80"></canvas><b>Kohärent QPSK/16-QAM</b><span>Phase und Amplitude tragen Bits. 400 bis 800 Gbit/s je Wellenlänge.</span></article>
+    <article><canvas class="wave" data-wave="wdm" width="300" height="80"></canvas><b>WDM</b><span>Mehrere Farben gleichzeitig auf einer Faser, bei DWDM bis 96 Kanäle.</span></article>
+    <article><canvas class="wave" data-wave="tdma" width="300" height="80"></canvas><b>TDMA im PON</b><span>Der OLT teilt jedem ONT einen Zeitschlitz für den Upstream zu.</span></article>
+    <article><canvas class="wave" data-wave="duplex" width="300" height="80"></canvas><b>Duplex je Wellenlänge</b><span>Hin- und Rückweg auf einer Faser, getrennt durch Filter.</span></article>
+  </div>
+</template>
 
-      <ol class="strecke-steps">
-        <li><b>Teach:In – Router &amp; ONT.</b> Der <button class="gl" data-g="ont">ONT</button> wandelt Ethernet-Frames in Lichtpulse um (elektrisch → optisch). Ab hier: Glas.</li>
-        <li><b>Hausanschluss (Gf-AP / APL).</b> Der Glasfaser-Abschlusspunkt im Keller; von dort geht die Faser über den Hausübergabepunkt zur Straße.</li>
-        <li><b>Netzverteiler (Nvt).</b> Grauer Kasten am Gehweg: Hier werden hunderte Fasern gespleißt und gebündelt weitergeführt.</li>
-        <li><b>Passiver Splitter.</b> Beim <button class="gl" data-g="pon">PON</button> teilt ein stromloser Glaskörper eine Faser auf bis zu 32–128 Teilnehmer. Rein optisch, keine Elektronik im Feld.</li>
-        <li><b>PoP mit OLT.</b> Der <button class="gl" data-g="olt">OLT</button> (das „Gegenstück“ zum ONT) bündelt alle Teilnehmer und übergibt an das Kernnetz.</li>
-        <li><b>Backbone.</b> Über <button class="gl" data-g="dwdm">DWDM</button>-Strecken mit vielen Wellenlängen pro Faser bis zum Internet-Knoten (z. B. DE-CIX).</li>
+<template data-t="zahlen">
+  <p class="lead">Typische Maximalwerte der sechs Anschlussarten, Download und Upload. Die Skala ist logarithmisch, sonst verschwinden die langsamen Techniken.</p>
+  <div class="bars" id="bars"></div>
+  <div class="two-up">
+    <dl class="spec">
+      <div><dt>Wellenlängen</dt><dd>850 · 1310 · 1490 · 1550 · 1577 nm</dd></div>
+      <div><dt>Frequenz</dt><dd>rund 190 bis 230 THz, also Infrarot</dd></div>
+      <div><dt>Nutzbare Bandbreite</dt><dd>O- bis L-Band, zusammen etwa 50 THz</dd></div>
+      <div><dt>Je Wellenlänge</dt><dd>10 Gbit/s im PON, 400 bis 800 Gbit/s kohärent</dd></div>
+      <div><dt>Latenz</dt><dd>1 bis 5 ms im Zugangsnetz</dd></div>
+    </dl>
+    <div class="panel">
+      <h4>Warum Glasfaser vorn liegt</h4>
+      <p>Kupfer und Funk teilen sich ein schmales Frequenzband, das mit der Entfernung schnell schlechter wird. Im Glas steht ein Band von rund 50 THz zur Verfügung, und die Dämpfung ist so gering, dass 20 km ohne Verstärker möglich sind.</p>
+      <p>Ein Upgrade von 1 auf 10 Gbit/s bedeutet deshalb nur neue Endgeräte — die Faser im Boden bleibt dieselbe.</p>
+    </div>
+  </div>
+</template>
+
+<template data-t="bilanz">
+  <div class="two-up">
+    <div class="panel good">
+      <h4>Vorteile</h4>
+      <ul>
+        <li>Symmetrische Gigabit-Raten, später per Gerätetausch aufrüstbar</li>
+        <li>Geringe Dämpfung, große Reichweite ohne Verstärker</li>
+        <li>Immun gegen elektromagnetische Störungen, Blitz und Übersprechen</li>
+        <li>Passives Netz, wenig Strom, Lebensdauer über 30 Jahre</li>
+      </ul>
+    </div>
+    <div class="panel bad">
+      <h4>Nachteile</h4>
+      <ul>
+        <li>Tiefbau ist teuer und langsam, Verfügbarkeit hängt an der Adresse</li>
+        <li>Wartezeit bis zum Hausanschluss oft mehrere Monate</li>
+        <li>Empfindlich: Biegeradius, Staub am Stecker, Spleißen braucht Spezialgerät</li>
+        <li>ONT braucht Strom, ohne USV bei Stromausfall kein Anschluss</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <h4>Einordnung für Teach:In</h4>
+    <p>Ein Schulungs- und Testzentrum lädt große VM-Images, spielt Backups zurück und hält Videokonferenzen. Genau dort zählt der Upload, und da hängt Glasfaser alle anderen Anschlussarten ab. Kabel liefert zwar 1 Gbit/s im Download, aber nur 50 Mbit/s zurück.</p>
+    <p>Das Risiko liegt nicht in der Technik, sondern im Bau: Wenn am Standort noch kein Glas liegt, entscheidet die Ausbauplanung über den Termin. Ein Kabel- oder 5G-Anschluss als Rückfallebene ist deshalb sinnvoll.</p>
+  </div>
+</template>
+
+<template data-t="verfuegbarkeit">
+  <div class="counters">
+    <div><b><span class="num" data-to="62" data-dec="0">0</span> %</b><span>der Haushalte in Deutschland erschlossen, Homes Passed im Juni 2026</span></div>
+    <div><b><span class="num" data-to="27" data-dec="0">0</span> %</b><span>davon gebucht — 7,9 Mio. aktive Anschlüsse, Take-up-Rate</span></div>
+    <div><b><span class="num" data-to="53.4" data-dec="1">0</span> %</b><span>der Berliner Haushalte versorgt, ein Plus von 12,6 Punkten in einem Jahr</span></div>
+    <div><b><span class="num" data-to="96.2" data-dec="1">0</span> %</b><span>Gigabit-Abdeckung in Berlin, überwiegend noch über Kabel</span></div>
+  </div>
+  <div class="two-up">
+    <div class="panel">
+      <h4>Berlin</h4>
+      <p>Die Innenstadtbezirke sind gut versorgt, die Randbezirke im Ausbau. Die Telekom hat im Mai 2026 eine Million Anschlüsse erreicht und will bis 2030 auf zwei Millionen kommen. Daneben bauen OXG, GlasfaserPlus und DNS:NET.</p>
+      <p>Entscheidend bleibt die einzelne Adresse: In derselben Straße kann ein Haus FTTH haben und das Nachbarhaus nicht.</p>
+    </div>
+    <div class="panel accent">
+      <h4>Beim Kunden Teach:In prüfen</h4>
+      <ol>
+        <li>Adresse im Gigabit-Grundbuch des Bundes und bei Telekom, Vodafone und DNS:NET abfragen.</li>
+        <li>Hausverwaltung fragen, ob im Keller schon ein Gf-AP sitzt.</li>
+        <li>Ohne FTTH: Geschäftskunden bekommen meist eine Direktanbindung gegen Baukostenzuschuss.</li>
       </ol>
     </div>
   </div>
-</section>
+</template>
 
-<!-- ───────────────── 2 MEDIUM ───────────────── -->
-<section id="medium" class="sec pin-sec">
-  <div class="pin-wrap medium-grid">
-    <div class="medium-text">
-      <p class="eyebrow">02 · Medium</p>
-      <h2>Ein Haar aus Glas</h2>
-      <p class="lead">Scrolle, um das Kabel Schicht für Schicht abzuisolieren – oder klicke eine Schicht an.</p>
-
-      <ul class="layers" id="layerList">
-        <li data-layer="4" style="--c:#FFB43C"><b>Außenmantel</b><span>2–3 mm · PE/LSZH-Kunststoff. Schutz gegen Nässe, UV, Nager, Zug.</span></li>
-        <li data-layer="3" style="--c:#FF4FB0"><b>Buffer + Aramid</b><span>900 µm · Zugentlastung durch Aramidfasern (Kevlar®); mechanischer Schutz.</span></li>
-        <li data-layer="2" style="--c:#8AA4FF"><b>Coating</b><span>250 µm · Acrylat-Lack, verhindert Mikrorisse und macht die Faser biegbar.</span></li>
-        <li data-layer="1" style="--c:#BFEFFF"><b>Mantel (Cladding)</b><span>125 µm · Quarzglas, Brechzahl n ≈ 1,46 – etwa 1 % niedriger als der Kern. Das erzwingt die <button class="gl" data-g="totalreflexion">Totalreflexion</button>.</span></li>
-        <li data-layer="0" style="--c:#2EE6FF"><b>Kern (Core)</b><span>9 µm (Singlemode) bzw. 50 µm (Multimode) · dotiertes Quarzglas (SiO₂ + GeO₂), n ≈ 1,48. Hier läuft das Licht.</span></li>
-      </ul>
-      <div class="toggle-cards">
-        <button class="tcard is-on" data-mode="sm"><b>Singlemode (OS2)</b><span>9 µm Kern · ein Lichtweg · Laser · Fernbereich, FTTH</span></button>
-        <button class="tcard" data-mode="mm"><b>Multimode (OM3–OM5)</b><span>50 µm Kern · viele Lichtwege · LED/VCSEL · nur Gebäude/LAN ≤ 550 m</span></button>
-      </div>
+<template data-t="kosten">
+  <p class="lead">Richtwerte vom September 2026. Aktionspreise für die ersten Monate ändern sich laufend und sind hier nicht eingerechnet.</p>
+  <div class="prices">
+    <div class="panel">
+      <span class="chip">Privat / SoHo</span>
+      <b class="mono price">46–71 €</b><i>pro Monat</i>
+      <ul><li>Glasfaser 150 für 45,95 €</li><li>Glasfaser 300 für 50,95 €</li><li>Glasfaser 1000 für 70,95 €</li><li>Bereitstellung einmalig 69,95 €</li></ul>
     </div>
-
-    <div class="medium-side">
-      <div class="cross-box">
-        <canvas id="crossCut" width="520" height="340" aria-label="Querschnitt der Glasfaser mit den aktiven Schichten"></canvas>
-        <span class="cross-label mono">Querschnitt · nicht maßstabsgetreu</span>
-      </div>
-      <div class="card props">
-        <h3>Eigenschaften des Mediums</h3>
-        <dl>
-          <dt>Material</dt><dd>Quarzglas (SiO₂), dielektrisch – kein Metall</dd>
-          <dt>Dämpfung</dt><dd class="mono">0,35 dB/km @ 1310 nm · 0,2 dB/km @ 1550 nm</dd>
-          <dt>Signal</dt><dd>Licht (IR, 850–1625 nm), ≈ 200 000 km/s im Glas</dd>
-          <dt>EMV</dt><dd>immun gegen elektromagnetische Störungen, kein Übersprechen, keine Erdung nötig</dd>
-          <dt>Reichweite</dt><dd class="mono">PON ≤ 20 km · P2P 40–80 km ohne Verstärker</dd>
-          <dt>Grenze</dt><dd>Biegeradius ≥ 30 mm, empfindlich gegen Schmutz an Steckern</dd>
-        </dl>
-      </div>
+    <div class="panel accent">
+      <span class="chip">Business, feste IP</span>
+      <b class="mono price">50–120 €</b><i>pro Monat netto</i>
+      <ul><li>300 bis 1000 Mbit/s, symmetrisch möglich</li><li>Feste IPv4, Entstörung am Folgetag</li><li>Passend für Schulungsräume und Testlabor</li></ul>
+    </div>
+    <div class="panel">
+      <span class="chip">Standleitung mit SLA</span>
+      <b class="mono price">ab 300 €</b><i>pro Monat, oft vierstellig</i>
+      <ul><li>Garantierte 1 bis 10 Gbit/s</li><li>Entstörung in 4 bis 8 Stunden</li><li>Zusätzlich Baukostenzuschuss</li></ul>
     </div>
   </div>
-</section>
-
-<!-- ───────────────── 3 VARIANTEN ───────────────── -->
-<section id="varianten" class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="eyebrow">03 · Varianten</p>
-      <h2>Wie weit reicht das Glas?</h2>
-      <p class="lead">„FTTx“ beschreibt, wo die Glasfaser endet und ab wo wieder Kupfer übernimmt. Je näher am Endgerät, desto besser.</p>
-    </div>
-
-    <div class="fttx" id="fttx">
-      <div class="fttx-track" aria-hidden="true">
-        <span class="stop">PoP</span><span class="stop">Kabelverzweiger</span><span class="stop">Gehweg</span><span class="stop">Keller</span><span class="stop">Wohnung / Büro</span>
-        <div class="fttx-bar"><div class="fiber-part" id="fiberPart"></div><div class="copper-part" id="copperPart"></div></div>
-      </div>
-      <div class="fttx-cards">
-        <button class="vcard" data-f="0.25" data-name="FTTC"><b>FTTC</b><i>Fiber to the Curb</i><span>Glas bis zum Kabelverzweiger, dann Kupfer (VDSL/Vectoring). Ende bei ~250 Mbit/s.</span></button>
-        <button class="vcard" data-f="0.5" data-name="FTTdp"><b>FTTdp</b><i>Fiber to the distribution point</i><span>Glas bis kurz vors Haus, letzte Meter Kupfer mit G.fast. Selten in DE.</span></button>
-        <button class="vcard" data-f="0.75" data-name="FTTB"><b>FTTB</b><i>Fiber to the Building</i><span>Glas bis in den Keller, im Haus Kupfer/Ethernet. Häufig bei Mehrfamilienhäusern.</span></button>
-        <button class="vcard is-on" data-f="1" data-name="FTTH"><b>FTTH</b><i>Fiber to the Home</i><span>Glas bis in die Wohnung / ins Büro. Volle Leistung, Ziel für Teach:In.</span></button>
-      </div>
-    </div>
-
-    <div class="two">
-      <div class="card">
-        <h3>PON – geteilt &amp; passiv</h3>
-        <p>Eine Faser vom OLT wird per Splitter auf bis zu 128 Teilnehmer aufgeteilt. Günstig, stromlos im Feld, Standard bei Telekom &amp; Co. Bandbreite wird geteilt – im Alltag kaum spürbar.</p>
-        <table class="mono small">
-          <tr><th>Standard</th><th>Down</th><th>Up</th><th>λ Down/Up</th></tr>
-          <tr><td>GPON</td><td>2,5 G</td><td>1,25 G</td><td>1490 / 1310 nm</td></tr>
-          <tr><td>XGS-PON</td><td>10 G</td><td>10 G</td><td>1577 / 1270 nm</td></tr>
-          <tr><td>50G-PON</td><td>50 G</td><td>25–50 G</td><td>1342 / 1286 nm</td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <h3>P2P / AON – exklusiv &amp; aktiv</h3>
-        <p>Jeder Kunde bekommt eine eigene Faser bis zum PoP (Punkt-zu-Punkt, „Active Optical Network“). Garantierte, symmetrische Bandbreite, beliebig aufrüstbar (1/10/100 GbE). Typisch für Geschäftskunden-Standleitungen, dafür teurer.</p>
-        <p class="tag-row"><span class="tag">Dark Fiber</span><span class="tag">Ethernet-Standleitung</span><span class="tag">SLA 99,9 %</span></p>
-      </div>
+  <div class="panel">
+    <h4>Einmalig: der Hausanschluss</h4>
+    <div class="ha">
+      <div><b class="mono ok">0 €</b><span>während Vorvermarktung und Nachfragebündelung — fast alle Anbieter übernehmen den Tiefbau.</span></div>
+      <div><b class="mono no">800–2 500 €</b><span>nachträglich, wenn die Straße schon fertig ist: Grabung, Hauseinführung, Gf-AP.</span></div>
+      <div><b class="mono">Empfehlung</b><span>Ausbauphase für die Teach:In-Adresse verfolgen und im richtigen Zeitfenster bestellen.</span></div>
     </div>
   </div>
-</section>
+</template>
 
-<!-- ───────────────── 4 FUNKTIONSWEISE ───────────────── -->
-<section id="technik" class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="eyebrow">04 · Funktionsweise</p>
-      <h2>Licht, das nicht entkommt</h2>
-      <p class="lead">Ein Laser schaltet Licht ein und aus – Milliarden Mal pro Sekunde. Weil der Kern optisch dichter ist als der Mantel, wird das Licht an der Grenze total reflektiert und bleibt im Kern gefangen.</p>
-    </div>
-
-    <div class="two">
-      <div class="card">
-        <h3>Totalreflexion ausprobieren</h3>
-        <canvas id="tirCanvas" width="640" height="260" aria-label="Simulation der Totalreflexion im Glasfaserkern"></canvas>
-        <label class="slider-row" for="tirAngle">Einfallswinkel zur Faserachse <output id="tirOut" class="mono">6,0°</output>
-          <input type="range" id="tirAngle" min="1" max="20" value="6" step="0.5">
-        </label>
-        <p class="small" id="tirMsg">Unter dem Grenzwinkel (≈ 9,4° zur Achse bei n₁ = 1,48 / n₂ = 1,46) bleibt das Licht im Kern.</p>
-      </div>
-      <div class="card">
-        <h3>Sender &amp; Empfänger</h3>
-        <ul class="bullets">
-          <li><b>Sender:</b> Laserdiode (Singlemode) oder LED/VCSEL (Multimode). Elektrisch → optisch.</li>
-          <li><b>Fenster:</b> 850 nm (MM), 1310 nm (O-Band) und 1550 nm (C-Band) – dort ist das Glas am durchsichtigsten.</li>
-          <li><b>Empfänger:</b> Photodiode, optisch → elektrisch. Rauschen und Dämpfung bestimmen die Reichweite.</li>
-          <li><b>Frequenz:</b> 1550 nm entspricht rund 193 THz. Ein Band von ~4–5 THz bietet enorme Bandbreite.</li>
-          <li><b>Leistungsbudget:</b> Sendeleistung minus Dämpfung, Spleiß- und Steckerverluste muss über der Empfängerschwelle bleiben – bei GPON sind rund 28 dB Budget vorgesehen.</li>
-        </ul>
-      </div>
-    </div>
-
-    <h3 class="sub-head">Übertragungs- &amp; Modulationsverfahren</h3>
-    <div class="mod-grid">
-      <article class="mcard">
-        <canvas class="wave" data-wave="nrz" width="300" height="90"></canvas>
-        <b>NRZ / OOK (IM-DD)</b><span>Intensitätsmodulation: Licht an = 1, aus = 0. Einfach, robust; GPON und XGS-PON bis 10 Gbit/s.</span>
-      </article>
-      <article class="mcard">
-        <canvas class="wave" data-wave="pam4" width="300" height="90"></canvas>
-        <b>PAM4</b><span>4 Helligkeitsstufen = 2 Bit pro Symbol. Doppelte Datenrate bei gleicher Symbolrate; 50G-PON, 400G-Ethernet.</span>
-      </article>
-      <article class="mcard">
-        <canvas class="wave" data-wave="qam" width="300" height="90"></canvas>
-        <b>Kohärent (QPSK/16-QAM)</b><span>Phase + Amplitude des Lichts codieren Bits. 400–800 Gbit/s pro Wellenlänge im Backbone.</span>
-      </article>
-      <article class="mcard">
-        <canvas class="wave" data-wave="wdm" width="300" height="90"></canvas>
-        <b>WDM (CWDM / DWDM)</b><span>Mehrere Farben (Wellenlängen) gleichzeitig auf einer Faser. DWDM: bis 96 Kanäle im 100-GHz-Raster.</span>
-      </article>
-      <article class="mcard">
-        <canvas class="wave" data-wave="tdma" width="300" height="90"></canvas>
-        <b>TDM / TDMA im PON</b><span>Downstream als Broadcast (AES-verschlüsselt), Upstream in Zeitschlitzen, die der OLT jedem ONT zuteilt.</span>
-      </article>
-      <article class="mcard">
-        <canvas class="wave" data-wave="duplex" width="300" height="90"></canvas>
-        <b>Duplex per Wellenlänge</b><span>Hin- und Rückrichtung auf einer Faser: unterschiedliche λ (z. B. 1577 nm ↓ / 1270 nm ↑), getrennt durch Filter.</span>
-      </article>
-    </div>
+<template data-t="rechner">
+  <p class="lead">Wähle eine Datei und vergleiche, wie lange die Übertragung bei voller Leitung dauert. Für ein Testzentrum ist vor allem die Upload-Spalte interessant.</p>
+  <div class="presets" id="presets">
+    <button data-gb="0.5">Vorlesungsvideo · 0,5 GB</button>
+    <button data-gb="5" class="is-on">Windows-Update · 5 GB</button>
+    <button data-gb="25">4K-Film · 25 GB</button>
+    <button data-gb="120">VM-Image-Backup · 120 GB</button>
   </div>
-</section>
-
-<!-- ───────────────── 5 ZAHLEN ───────────────── -->
-<section id="zahlen" class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="eyebrow">05 · Zahlen</p>
-      <h2>Raten, Frequenzen, Vor- &amp; Nachteile</h2>
-    </div>
-
-    <div class="card">
-      <h3>Datenraten im Vergleich <span class="small muted">(typische Maximalwerte, Down ↓ / Up ↑, logarithmische Skala)</span></h3>
-      <div class="bars" id="bars"></div>
-    </div>
-
-    <div class="three">
-      <div class="card">
-        <h3>Frequenzen &amp; Bandbreite</h3>
-        <dl class="mono small">
-          <dt>Wellenlängen</dt><dd>850 · 1310 · 1490 · 1550 · 1577 nm</dd>
-          <dt>Frequenz</dt><dd>≈ 190–230 THz (Infrarot)</dd>
-          <dt>Nutzbare Bandbreite</dt><dd>O- bis L-Band ≈ 50 THz</dd>
-          <dt>Pro Wellenlänge</dt><dd>10 G (PON) · 400–800 G (kohärent)</dd>
-          <dt>Latenz Zugang</dt><dd>1–5 ms · 5 µs pro km</dd>
-        </dl>
-      </div>
-      <div class="card pro">
-        <h3>Vorteile</h3>
-        <ul class="bullets">
-          <li>Symmetrische Gigabit-Raten, später per Gerätetausch aufrüstbar</li>
-          <li>Geringe Dämpfung, große Reichweite ohne Verstärker</li>
-          <li>Immun gegen EMV, Blitz &amp; Übersprechen, nicht abhörbar per Induktion</li>
-          <li>Wenig Strom im Netz (passiv), langlebig (&gt; 30 Jahre)</li>
-        </ul>
-      </div>
-      <div class="card con">
-        <h3>Nachteile</h3>
-        <ul class="bullets">
-          <li>Tiefbau teuer und langsam – Verfügbarkeit ist adressabhängig</li>
-          <li>Wartezeit bis zum Hausanschluss oft Monate</li>
-          <li>Empfindlich: Biegeradius, Staub an Steckern, Spleißen braucht Spezialgerät</li>
-          <li>ONT braucht Strom – ohne USV bei Stromausfall kein Anschluss</li>
-        </ul>
-      </div>
-    </div>
+  <label class="slider" for="sizeRange">Dateigröße <output id="sizeOut" class="mono">5,0 GB</output>
+    <input type="range" id="sizeRange" min="0" max="1000" step="1" value="459">
+  </label>
+  <div class="dir-toggle" id="dirToggle">
+    <button class="is-on" data-dir="down">Download</button>
+    <button data-dir="up">Upload</button>
   </div>
-</section>
+  <div class="calc-rows" id="calcRows"></div>
+</template>
 
-<!-- ───────────────── 6 RECHNER ───────────────── -->
-<section id="rechner" class="sec">
-  <div class="wrap narrow">
-    <div class="sec-head">
-      <p class="eyebrow">Interaktiv</p>
-      <h2>Wie lange dauert der Download?</h2>
-      <p class="lead">Wähle eine Datei – die Balken zeigen die Übertragungsdauer bei voller Leitung. Für Teach:In zählt vor allem der Upload (Backups, Videokonferenzen, Remote-Labs).</p>
-    </div>
-    <div class="card calc">
-      <div class="presets">
-        <button data-gb="0.5">Vorlesungs-Video · 0,5 GB</button>
-        <button data-gb="5" class="is-on">Windows-Update · 5 GB</button>
-        <button data-gb="25">4K-Film · 25 GB</button>
-        <button data-gb="120">VM-Image-Backup · 120 GB</button>
-      </div>
-      <label class="slider-row" for="sizeRange">Dateigröße <output id="sizeOut" class="mono">5,0 GB</output>
-        <input type="range" id="sizeRange" min="0" max="1000" step="1" value="459">
-      </label>
-      <div class="calc-toggle"><button class="is-on" data-dir="down">Download ↓</button><button data-dir="up">Upload ↑</button></div>
-      <div class="calc-rows" id="calcRows"></div>
-    </div>
-  </div>
-</section>
+<template data-t="quiz">
+  <div id="quizBox"></div>
+</template>
 
-<!-- ───────────────── 7 VERFÜGBARKEIT ───────────────── -->
-<section id="verfuegbarkeit" class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="eyebrow">06 · Verfügbarkeit</p>
-      <h2>Wo liegt schon Glas?</h2>
-    </div>
-    <div class="counters">
-      <div class="counter"><b><span class="num" data-to="62" data-dec="0">0</span> %</b><span>der Haushalte in Deutschland mit Glasfaser erschlossen (Homes Passed, Juni 2026)</span></div>
-      <div class="counter"><b><span class="num" data-to="27" data-dec="0">0</span> %</b><span>davon tatsächlich gebucht (Take-up-Rate) – 7,9 Mio. aktive Anschlüsse</span></div>
-      <div class="counter"><b><span class="num" data-to="53.4" data-dec="1">0</span> %</b><span>der Berliner Haushalte mit FTTH/B versorgt (Ende 2025, +12,6 Punkte in einem Jahr)</span></div>
-      <div class="counter"><b><span class="num" data-to="1" data-dec="0">0</span> Mio.</b><span>Anschlüsse allein der Telekom in Berlin (Mai 2026), Ziel 2 Mio. bis 2030</span></div>
-    </div>
-    <div class="two">
-      <div class="card">
-        <h3>Berlin</h3>
-        <p>Innenstadtbezirke sind gut versorgt, Randbezirke im Ausbau. Große Bauträger: Telekom, OXG (Vodafone/Altice), GlasfaserPlus, DNS:NET. Gigabit über Kabel (DOCSIS) liegt bereits bei 96 % – Glasfaser holt schnell auf.</p>
-        <p>Entscheidend ist immer die einzelne Adresse: In derselben Straße kann ein Haus bereits FTTH haben und das Nachbarhaus noch nicht. Vor der Standortwahl für Teach:In lohnt sich deshalb die Einzelprüfung.</p>
-      </div>
-      <div class="card highlight">
-        <h3>Beim Kunden Teach:In prüfen</h3>
-        <ol class="steps-list">
-          <li>Adresse im <b>Breitbandatlas / Gigabit-Grundbuch</b> (bmdv) und bei Telekom, Vodafone &amp; DNS:NET checken.</li>
-          <li>Hausverwaltung fragen: Gibt es schon einen <button class="gl" data-g="gfap">Gf-AP</button> im Keller?</li>
-          <li>Kein FTTH? Geschäftskunden können meist eine Direktanbindung gegen Baukostenzuschuss bekommen.</li>
-        </ol>
-      </div>
-    </div>
-  </div>
-</section>
+<template data-t="glossar">
+  <p class="lead">Die Grundbegriffe, die in diesem Plakat vorkommen.</p>
+  <input type="search" id="glossSearch" class="gloss-search" placeholder="Begriff filtern" aria-label="Glossar durchsuchen">
+  <dl class="glossary" id="glossary"></dl>
+</template>
 
-<!-- ───────────────── 8 KOSTEN ───────────────── -->
-<section id="kosten" class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="eyebrow">07 · Kosten</p>
-      <h2>Was kostet der Anschluss?</h2>
-      <p class="lead">Richtwerte, Stand September 2026. Aktionen (z. B. erste Monate für 9,95 €) ändern sich laufend.</p>
-    </div>
-    <div class="three prices">
-      <div class="card price">
-        <span class="tag">Privat / SoHo</span>
-        <b class="mono">46–71 €</b><i>pro Monat</i>
-        <ul class="bullets small">
-          <li>Telekom Glasfaser 150 → 45,95 €</li>
-          <li>Glasfaser 300 → 50,95 €</li>
-          <li>Glasfaser 1000 → 70,95 €</li>
-          <li>Bereitstellung einmalig 69,95 €</li>
-        </ul>
-      </div>
-      <div class="card price is-hot">
-        <span class="tag">Business (PON, feste IP)</span>
-        <b class="mono">≈ 50–120 €</b><i>pro Monat netto</i>
-        <ul class="bullets small">
-          <li>300–1000 Mbit/s, symmetrisch möglich</li>
-          <li>Feste IPv4, Entstörung am Folgetag</li>
-          <li>Passend für Schulungsräume &amp; Testlabor</li>
-        </ul>
-      </div>
-      <div class="card price">
-        <span class="tag">Standleitung (P2P, SLA)</span>
-        <b class="mono">ab ≈ 300 €</b><i>pro Monat, oft 1 000 €+</i>
-        <ul class="bullets small">
-          <li>Garantierte Bandbreite 1–10 Gbit/s</li>
-          <li>Entstörung in 4–8 h, 99,9 % Verfügbarkeit</li>
-          <li>Plus Baukostenzuschuss (BKZ)</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card hausanschluss">
-      <h3>Einmalig: der Hausanschluss</h3>
-      <div class="ha-row">
-        <div><b class="mono good">0 €</b><span>während der Vorvermarktung / Nachfragebündelung – fast alle Anbieter übernehmen den Tiefbau.</span></div>
-        <div><b class="mono warn">800–2 500 €</b><span>nachträglich, wenn die Straße schon fertig ist (Grabung, Hauseinführung, Gf-AP).</span></div>
-        <div><b class="mono">Tipp</b><span>Ausbauphasen für die Teach:In-Adresse verfolgen und im richtigen Zeitfenster bestellen.</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ───────────────── 9 QUIZ ───────────────── -->
-<section id="quiz" class="sec">
-  <div class="wrap narrow">
-    <div class="sec-head">
-      <p class="eyebrow">Plenum</p>
-      <h2>Kurzes Quiz</h2>
-      <p class="lead">Fünf Fragen – wer hat aufgepasst?</p>
-    </div>
-    <div class="card quiz" id="quiz-box"></div>
-  </div>
-</section>
-
-<!-- ───────────────── 10 GLOSSAR ───────────────── -->
-<section id="glossar" class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <p class="eyebrow">08 · Glossar</p>
-      <h2>Grundbegriffe</h2>
-      <p class="lead">Alle markierten Begriffe auf dieser Seite sind anklickbar.</p>
-    </div>
-    <dl class="glossary" id="glossary"></dl>
-  </div>
-</section>
-
-<!-- ───────────────── 11 QUELLEN ───────────────── -->
-<section id="quellen" class="sec sources">
-  <div class="wrap">
-    <p class="eyebrow">09 · Quellen</p>
-    <ol class="src">
-      <li>BREKO Bundesverband Breitbandkommunikation: <em>BREKO Marktanalyse 2026</em>, 02.09.2026 – brekoverband.de/aktuelles/breko-marktanalyse/</li>
-      <li>Senatsverwaltung für Wirtschaft, Energie und Betriebe Berlin: <em>Gigabit-Strategie: Glasfaserausbau mit Rekordwerten – 53,4 % der Haushalte nun versorgt</em>, PM 04.03.2026 – berlin.de/sen/web/presse/</li>
-      <li>Deutsche Telekom AG: <em>Früher als geplant: Telekom knackt 1-Million-Marke beim Glasfaserausbau in Berlin</em>, Medieninformation Mai 2026 – telekom.com</li>
-      <li>dslweb.de: <em>Telekom Glasfaser Tarife – Angebote und Preise im Vergleich</em>, abgerufen 15.09.2026</li>
-      <li>kostenlupe.de: <em>Glasfaseranschluss Kosten 2026: Hausanschluss, Tarife, Mieter</em>, abgerufen 15.09.2026</li>
-      <li>ITU-T G.984 (GPON), G.9807.1 (XGS-PON), G.9804 (50G-PON), G.652 (Singlemode-Faser) – itu.int</li>
-      <li>BMDV / Gigabitbüro des Bundes: <em>Breitbandatlas / Gigabit-Grundbuch</em> – gigabitgrundbuch.bund.de</li>
-      <li>Elektronik-Kompendium: <em>Lichtwellenleiter (LWL), Glasfaser, FTTx</em> – elektronik-kompendium.de</li>
-      <li>FTTH Council Europe: <em>Market Panorama 2026</em> – ftthcouncil.eu</li>
-    </ol>
-    <p class="small muted">Präsentation erstellt für das Modul „WAN-Anbindung Teach:In“ · Anschlussart LWL/Glasfaser · Stand 15.09.2026. Drei.js und GSAP für die Animationen.</p>
-  </div>
-</section>
-
-</main>
-
-<div class="gpop" id="gpop" role="dialog" aria-live="polite" hidden>
-  <b id="gpopTitle"></b><p id="gpopText"></p>
-</div>
+<template data-t="quellen">
+  <ol class="sources">
+    <li>BREKO Bundesverband Breitbandkommunikation: <em>BREKO Marktanalyse 2026</em>, 02.09.2026. brekoverband.de</li>
+    <li>Senatsverwaltung für Wirtschaft, Energie und Betriebe Berlin: <em>Gigabit-Strategie: Glasfaserausbau mit Rekordwerten, 53,4 % der Haushalte versorgt</em>, Pressemitteilung 04.03.2026. berlin.de</li>
+    <li>Deutsche Telekom AG: <em>Telekom knackt 1-Million-Marke beim Glasfaserausbau in Berlin</em>, Medieninformation Mai 2026. telekom.com</li>
+    <li>dslweb.de: <em>Telekom Glasfaser Tarife im Vergleich</em>, abgerufen 15.09.2026</li>
+    <li>kostenlupe.de: <em>Glasfaseranschluss Kosten 2026: Hausanschluss, Tarife, Mieter</em>, abgerufen 15.09.2026</li>
+    <li>ITU-T: G.984 (GPON), G.9807.1 (XGS-PON), G.9804 (50G-PON), G.652 (Singlemode-Faser). itu.int</li>
+    <li>BMDV / Gigabitbüro des Bundes: <em>Gigabit-Grundbuch und Breitbandatlas</em>. gigabitgrundbuch.bund.de</li>
+    <li>FTTH Council Europe: <em>Market Panorama 2026</em>. ftthcouncil.eu</li>
+    <li>Elektronik-Kompendium: <em>Lichtwellenleiter, Glasfaser, FTTx</em>. elektronik-kompendium.de</li>
+  </ol>
+  <p class="hint">Erstellt für das Modul WAN-Anbindung Teach:In, Anschlussart LWL. Stand 15.09.2026. 3D-Szene mit three.js, Scroll-Steuerung mit GSAP.</p>
+</template>
 
 <script src="js/vendor/three.min.js"></script>
 <script src="js/vendor/gsap.min.js"></script>
