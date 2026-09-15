@@ -16,11 +16,12 @@ python3 -m http.server 8000     # optional, dann http://localhost:8000
 ## Aufbau
 
 **Ansicht 1 — Strecke.** Eine 3D-Szene, in der die Kamera in einem dunklen
-Netzraum steht und die Faser entlangblickt. Sechs Stationen stehen als
-beleuchtete Schränke im Raum: Router mit ONT, Gf-AP, Netzverteiler,
-Splitter, PoP mit OLT und Backbone. Jede Station trägt einen Klickpunkt,
-der im Raum verankert ist und beim Scrollen mitwandert. Ein Klick öffnet
-die Erklärung.
+Netzraum steht und den Gang entlangfährt. Die Faser läuft an der rechten
+Wand entlang, sechs beleuchtete Schränke stehen an beiden Seiten: Router
+mit ONT, Gf-AP, Netzverteiler, Splitter, PoP mit OLT und Backbone. Jede
+Station trägt einen Klickpunkt, der im Raum verankert ist und beim Scrollen
+mitwandert. Rechts zeigt eine Stationsleiste die zurückgelegte Entfernung
+von 0 m bis 20 km; ein Klick auf einen Eintrag springt zu dieser Station.
 
 **Ansicht 2 — Plakat.** Zehn Kacheln zu Medium, FTTx-Varianten,
 Funktionsweise, Kennzahlen, Vor- und Nachteilen, Verfügbarkeit, Kosten,
@@ -31,7 +32,8 @@ vollständigen Inhalt. Die Quellen liegen als Leiste am unteren Rand.
 
 | Eingabe | Wirkung |
 | --- | --- |
-| Scrollen | Kamera fährt durch den Raum, wechselt zur Plakatansicht |
+| Scrollen | Kamera fährt den ganzen Korridor ab, danach zur Plakatansicht |
+| Klick auf die Stationsleiste | Direkt zu einer Station springen |
 | Strecke / Plakat oben | Direkt zwischen den Ansichten springen |
 | ← / → | Ansicht wechseln |
 | Klick auf Punkt oder Kachel | Popup mit Details |

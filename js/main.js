@@ -13,12 +13,12 @@
 
   /* ════════ STATIONEN IM RAUM ════════ */
   var STATIONS = [
-    { key: "ont",      t: 0.12, side: -1, color: 0x2EE6FF, hex: "#2EE6FF", name: "Router + ONT",  sub: "Teach:In · 0 m" },
-    { key: "gfap",     t: 0.27, side:  1, color: 0x5CF2A6, hex: "#5CF2A6", name: "Gf-AP",         sub: "Hausanschluss · 20 m" },
-    { key: "nvt",      t: 0.43, side: -1, color: 0x8AA4FF, hex: "#8AA4FF", name: "Netzverteiler", sub: "Gehweg · 300 m" },
-    { key: "splitter", t: 0.58, side:  1, color: 0xFF4FB0, hex: "#FF4FB0", name: "Splitter",      sub: "passiv 1:32 · 2 km" },
-    { key: "olt",      t: 0.75, side: -1, color: 0xFFB43C, hex: "#FFB43C", name: "PoP mit OLT",   sub: "Vermittlung · 12 km" },
-    { key: "backbone", t: 0.93, side:  1, color: 0xFF7A59, hex: "#FF7A59", name: "Backbone",      sub: "DE-CIX · 20 km+" }
+    { key: "ont",      t: 0.12, side: -1, color: 0x2EE6FF, hex: "#2EE6FF", name: "Router + ONT",  sub: "Teach:In · 0 m",        m: 0 },
+    { key: "gfap",     t: 0.27, side:  1, color: 0x5CF2A6, hex: "#5CF2A6", name: "Gf-AP",         sub: "Hausanschluss · 20 m",  m: 20 },
+    { key: "nvt",      t: 0.43, side: -1, color: 0x8AA4FF, hex: "#8AA4FF", name: "Netzverteiler", sub: "Gehweg · 300 m",        m: 300 },
+    { key: "splitter", t: 0.58, side:  1, color: 0xFF4FB0, hex: "#FF4FB0", name: "Splitter",      sub: "passiv 1:32 · 2 km",    m: 2000 },
+    { key: "olt",      t: 0.75, side: -1, color: 0xFFB43C, hex: "#FFB43C", name: "PoP mit OLT",   sub: "Vermittlung · 12 km",   m: 12000 },
+    { key: "backbone", t: 0.93, side:  1, color: 0xFF7A59, hex: "#FF7A59", name: "Backbone",      sub: "DE-CIX · 20 km+",       m: 20000 }
   ];
 
   var MODALS = {
@@ -42,9 +42,11 @@
   };
 
   var stage = 0, modalOpen = false;
+  var TRAVEL = 0.82;   // Anteil des Scrollwegs für die Fahrt durch den Korridor
 
   /* ════════ 3D-RAUM ════════ */
-  var cam = { z: 11, y: 0.3, pitch: 0 };
+  var cam = { z: 14, y: 0.3, pitch: 0 };
+  var travelEnd = -120;
   var scene3d = null;
 
   function buildRoom() {
@@ -63,7 +65,7 @@
     scene.fog = new THREE.FogExp2(0x04060f, 0.0165);
 
     var camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 600);
-    camera.position.set(0, 0.3, 11);
+    camera.position.set(0, 0.3, 14);
 
     /* — Raumbegrenzung: Boden, Decke, zwei Wände — */
     function grid(size, div, c1, c2, op) {
@@ -73,32 +75,33 @@
       g.material.depthWrite = false;
       return g;
     }
-    var FLOOR_Y = -3.4, CEIL_Y = 5.6, WALL_X = 13.5, ROOM_Z = -110;
+    var FLOOR_Y = -3.4, CEIL_Y = 5.6, WALL_X = 13.5, ROOM_Z = -140;
 
-    var floor = grid(280, 70, 0x2EE6FF, 0x16325c, 0.34);
+    var floor = grid(400, 100, 0x2EE6FF, 0x1b3a68, 0.42);
     floor.position.set(0, FLOOR_Y, ROOM_Z); scene.add(floor);
 
-    var ceil = grid(280, 70, 0x1b3a6b, 0x122a4e, 0.12);
+    var ceil = grid(400, 100, 0x1b3a6b, 0x122a4e, 0.12);
     ceil.position.set(0, CEIL_Y, ROOM_Z);
     scene.add(ceil);
 
-    var left = grid(280, 40, 0x1e3f73, 0x142a52, 0.16);
+    var left = grid(400, 56, 0x1e3f73, 0x142a52, 0.16);
     left.rotation.z = Math.PI / 2; left.position.set(-WALL_X, 1, ROOM_Z); scene.add(left);
 
-    var right = grid(280, 40, 0x1e3f73, 0x142a52, 0.16);
+    var right = grid(400, 56, 0x1e3f73, 0x142a52, 0.16);
     right.rotation.z = Math.PI / 2; right.position.set(WALL_X, 1, ROOM_Z); scene.add(right);
 
     /* — Licht — */
     scene.add(new THREE.AmbientLight(0x3f5a91, 0.7));
 
     /* — Die Faser als Tube durch den Raum — */
+    // Die Faser läuft seitlich an der rechten Wand entlang, nicht durch die Kameraachse
     var curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(4.6, -1.8, 15),
-      new THREE.Vector3(2.6, -0.8, 1),
-      new THREE.Vector3(0.4, 0.4, -20),
-      new THREE.Vector3(-1.5, -0.2, -48),
-      new THREE.Vector3(0.7, 0.7, -80),
-      new THREE.Vector3(-0.2, 0.1, -118)
+      new THREE.Vector3(3.6, -1.9, 15),
+      new THREE.Vector3(3.1, -0.9, 1),
+      new THREE.Vector3(2.5, 0.2, -26),
+      new THREE.Vector3(3.3, -0.3, -60),
+      new THREE.Vector3(2.6, 0.6, -100),
+      new THREE.Vector3(3.0, 0.1, -150)
     ]);
 
     var core = new THREE.Mesh(
@@ -110,8 +113,8 @@
     var sheath = new THREE.Mesh(
       new THREE.TubeGeometry(curve, 200, 0.3, 14, false),
       new THREE.MeshStandardMaterial({
-        color: 0x1a4e77, emissive: 0x0d2f4d, emissiveIntensity: 0.8,
-        roughness: 0.25, metalness: 0.3, transparent: true, opacity: 0.3, side: THREE.DoubleSide
+        color: 0x14334d, emissive: 0x0a2136, emissiveIntensity: 0.3,
+        roughness: 0.3, metalness: 0.35, transparent: true, opacity: 0.2, side: THREE.DoubleSide
       })
     );
     scene.add(sheath);
@@ -134,7 +137,8 @@
     STATIONS.forEach(function (s, i) {
       var p = curve.getPointAt(s.t);
       s.cablePos = p.clone();
-      var cx = p.x + s.side * (2.6 + i * 1.45);
+      // Schränke stehen an den Wänden, der Gang in der Mitte bleibt frei
+      var cx = s.side > 0 ? p.x + 3.1 + i * 0.2 : -4.9 - i * 0.2;
       var cz = p.z;
 
       var lamp = new THREE.PointLight(s.color, 22, 34);
@@ -185,15 +189,17 @@
       );
       scene.add(stub);
 
-      s.anchor = new THREE.Vector3(cx, FLOOR_Y + 2.95 + i * 1.3, cz);
+      s.anchor = new THREE.Vector3(cx, FLOOR_Y + 2.9 + i * 0.3, cz);
     });
+
+    travelEnd = STATIONS[STATIONS.length - 1].anchor.z + 7;
 
     /* — Staub für Tiefenstaffelung — */
     var N = 1400, pos = new Float32Array(N * 3);
     for (var k = 0; k < N; k++) {
       pos[k * 3] = (Math.random() - 0.5) * 26;
       pos[k * 3 + 1] = FLOOR_Y + Math.random() * 9;
-      pos[k * 3 + 2] = 14 - Math.random() * 150;
+      pos[k * 3 + 2] = 16 - Math.random() * 200;
     }
     var dustGeo = new THREE.BufferGeometry();
     dustGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
@@ -314,14 +320,20 @@
       cand.push({ s: s, x: x, y: y, d: dist, ok: ok });
     }
 
-    // Näher gelegene Punkte gewinnen, überlappende dahinter werden ausgeblendet
+    // Näher gelegene Punkte gewinnen; dahinterliegende weichen nach oben aus
     cand.sort(function (a, b) { return a.d - b.d; });
     var taken = [];
+    function collides(c) {
+      for (var j = 0; j < taken.length; j++) {
+        if (Math.abs(taken[j].x - c.x) < 150 && Math.abs(taken[j].y - c.y) < 46) return true;
+      }
+      return false;
+    }
     cand.forEach(function (c) {
       if (!c.ok) return;
-      for (var j = 0; j < taken.length; j++) {
-        if (Math.abs(taken[j].x - c.x) < 152 && Math.abs(taken[j].y - c.y) < 46) { c.ok = false; return; }
-      }
+      var tries = 0;
+      while (collides(c) && tries < 3) { c.y -= 48; tries++; }
+      if (collides(c) || c.y < 96) { c.ok = false; return; }
       taken.push(c);
     });
 
@@ -335,6 +347,31 @@
   }
 
   scene3d = buildRoom();
+
+  /* ════════ STATIONSLEISTE ════════ */
+  var railEl = document.getElementById("rail");
+  function travelFrac(z) { return clamp((14 - z) / (14 - travelEnd), 0, 1); }
+
+  if (railEl) {
+    STATIONS.forEach(function (s) {
+      if (!s.anchor) return;
+      s.frac = travelFrac(s.anchor.z);
+      var b = document.createElement("button");
+      b.className = "tick";
+      b.style.top = (s.frac * 100).toFixed(1) + "%";
+      b.style.setProperty("--c", s.hex);
+      b.innerHTML = '<i></i><span></span>';
+      b.querySelector("span").textContent = s.name;
+      b.title = s.name + " — " + s.sub;
+      b.addEventListener("click", function () {
+        var max = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo({ top: max * s.frac * TRAVEL, behavior: reduced ? "auto" : "smooth" });
+      });
+      railEl.appendChild(b);
+      s.tick = b;
+    });
+  }
+
 
   /* ════════ BÜHNENWECHSEL ════════ */
   var stages = [document.getElementById("stage0"), document.getElementById("stage1")];
@@ -353,15 +390,56 @@
     }
   }
 
+  var intro = document.querySelector(".room-intro");
+  var depthDot = document.getElementById("depthDot");
+  var depthNow = document.getElementById("depthNow");
+
+  function fmtDist(m) {
+    if (m < 1000) return Math.round(m / 10) * 10 + " m";
+    return de(m / 1000, m < 10000 ? 1 : 0) + " km";
+  }
+  function distanceAt(z) {
+    var A = STATIONS;
+    if (!A[0].anchor) return "0 m";
+    if (z >= A[0].anchor.z) return "0 m";
+    for (var i = 0; i < A.length - 1; i++) {
+      var z0 = A[i].anchor.z, z1 = A[i + 1].anchor.z;
+      if (z <= z0 && z > z1) {
+        var f = (z0 - z) / (z0 - z1);
+        return fmtDist(A[i].m + f * (A[i + 1].m - A[i].m));
+      }
+    }
+    return fmtDist(A[A.length - 1].m);
+  }
+
   function onScroll() {
     var max = document.documentElement.scrollHeight - window.innerHeight;
     var p = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
-    var a = smooth(clamp(p / 0.5, 0, 1));          // Anflug durch den Raum
-    var c = smooth(clamp((p - 0.5) / 0.5, 0, 1));  // Rückzug für das Plakat
-    cam.z = lerp(11, 2.2, a) + c * 5.5;
-    cam.y = lerp(0.3, 0.8, a) + c * 3.4;
-    cam.pitch = -c * 1.6;
-    setStage(p < 0.48 ? 0 : 1);
+    var a = clamp(p / TRAVEL, 0, 1);                              // Fahrt durch den Korridor
+    var c = smooth(clamp((p - TRAVEL) / (1 - TRAVEL), 0, 1));     // Rückzug für das Plakat
+    var travelZ = lerp(14, travelEnd, a);
+
+    cam.z = travelZ + c * 9;
+    cam.y = lerp(0.3, 1.1, smooth(a)) + c * 3.6;
+    cam.pitch = -c * 1.7;
+
+    // Titelblock macht nach dem Start Platz für den Raum
+    if (intro) {
+      var o = clamp(1 - a / 0.2, 0, 1);
+      intro.style.opacity = o.toFixed(2);
+      intro.style.pointerEvents = o > 0.15 ? "auto" : "none";
+      intro.style.transform = "translateY(" + (-(1 - o) * 26).toFixed(1) + "px)";
+    }
+
+    if (depthDot) depthDot.style.top = (a * 100).toFixed(1) + "%";
+    if (depthNow) depthNow.textContent = distanceAt(travelZ);
+
+    // Erreichte Station auf der Leiste hervorheben
+    var cur = -1;
+    STATIONS.forEach(function (s, i) { if (s.frac !== undefined && a >= s.frac - 0.03) cur = i; });
+    STATIONS.forEach(function (s, i) { if (s.tick) s.tick.classList.toggle("is-on", i === cur); });
+
+    setStage(p < TRAVEL - 0.03 ? 0 : 1);
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
