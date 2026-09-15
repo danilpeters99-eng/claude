@@ -44,3 +44,9 @@ python3 -m http.server 8000     # optional, dann http://localhost:8000
 11. Quellen
 
 Stand der Zahlen: 15.09.2026. Quellen stehen am Fuß der Seite.
+
+## Gehostete Fassung
+
+`artifact-page.html` ist eine aus `index.html` erzeugte Variante ohne
+`<html>`/`<head>`/`<body>`-Rahmen, die als Claude-Artifact veröffentlicht wird.
+Inhaltlich identisch, sie bindet dieselben Dateien aus `css/` und `js/` ein.
