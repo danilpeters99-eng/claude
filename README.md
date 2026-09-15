@@ -5,9 +5,15 @@ Schulungs- und Testzentrum Teach:In. Zwei Ansichten, alle Details auf Klick.
 
 ## Starten
 
-Die Seite ist statisch. `index.html` im Browser öffnen genügt, die
-Bibliotheken liegen lokal bei. Für die Web-Schriften wird eine
-Internetverbindung gebraucht, sonst greift ein Fallback.
+**`index.html` ist eine einzige, vollständig eigenständige Datei.** CSS und
+JavaScript (inklusive three.js und GSAP) sind direkt eingebettet. Ein
+Doppelklick auf `index.html` genügt — unabhängig davon, ob nur diese eine
+Datei kopiert, per Mail verschickt oder aus dem Repository heruntergeladen
+wurde. Kein `css/`- oder `js/`-Ordner daneben nötig, kein lokaler Server.
+
+Einzige Ausnahme: die Schriften werden von Google Fonts nachgeladen und
+brauchen dafür eine Internetverbindung. Ohne Verbindung greift automatisch
+ein Systemschrift-Fallback, die Seite bleibt voll funktionsfähig.
 
 ```
 python3 -m http.server 8000     # optional, dann http://localhost:8000
@@ -42,11 +48,19 @@ vollständigen Inhalt. Die Quellen liegen als Leiste am unteren Rand.
 
 ## Dateien
 
-- `index.html` — Struktur beider Ansichten, alle Popup-Inhalte als `<template>`
-- `css/style.css` — Design-System, ein dunkles Theme
-- `js/main.js` — 3D-Raum, Projektion der Klickpunkte, Popups, Widgets
-- `js/vendor/` — three.js r158 und GSAP 3.12.5, lokal eingebunden
-- `artifact-page.html` — aus `index.html` erzeugte Fassung ohne Dokumentrahmen
-  für die gehostete Version. Nicht direkt öffnen.
+- `index.html` — **ausgeliefertes Ergebnis.** Einzelne, eigenständige Datei
+  mit eingebettetem CSS und JavaScript. Diese Datei weitergeben oder öffnen.
+- `index.template.html` — bearbeitbare Quelle: Struktur beider Ansichten,
+  alle Popup-Inhalte als `<template>`, verweist noch auf externe `css/`- und
+  `js/`-Dateien. Hier Änderungen an Text und Struktur vornehmen.
+- `css/style.css` — Design-System, ein dunkles Theme (Quelle)
+- `js/main.js` — 3D-Raum, Projektion der Klickpunkte, Popups, Widgets (Quelle)
+- `js/vendor/` — three.js r158 und GSAP 3.12.5, lokal eingebunden (Quelle)
+- `build.py` — bettet CSS und JavaScript aus den Quelldateien in
+  `index.template.html` ein und schreibt das Ergebnis nach `index.html`.
+  **Nach jeder Änderung an `index.template.html`, `css/style.css` oder
+  `js/main.js` erneut ausführen:** `python3 build.py`
+- `artifact-page.html` — aus `index.template.html` erzeugte Fassung ohne
+  Dokumentrahmen für die gehostete Version. Nicht direkt öffnen.
 
 Stand der Zahlen: 15.09.2026. Belege stehen im Popup "Quellen & Stand".
