@@ -46,6 +46,24 @@ vollständigen Inhalt. Die Quellen liegen als Leiste am unteren Rand.
 | Esc | Popup schließen |
 | F | Vollbild |
 
+## PowerPoint-Fassung
+
+`Glasfaser-Teach-In.pptx` ist dieselbe Präsentation als klassisches
+Foliendeck, 13 Folien im 16:9-Format. Auf jeder Folie stehen Sprechernotizen.
+Gedacht für Beamer, Ausdruck und Abgabe; die interaktiven Teile (3D-Raum,
+Rechner) sind darin als statische Grafiken und Tabellen aufbereitet.
+
+Gliederung: Titel · Übertragungsstrecke · Medium · FTTx-Varianten ·
+Funktionsweise · Kennzahlen · Vor- und Nachteile · Verfügbarkeit · Kosten ·
+Quiz · Glossar (2 Folien) · Quellen.
+
+Erzeugt wird die Datei mit `deck.js` über pptxgenjs:
+
+```
+npm install pptxgenjs
+node deck.js
+```
+
 ## Dateien
 
 - `index.html` — **ausgeliefertes Ergebnis.** Einzelne, eigenständige Datei
@@ -60,7 +78,9 @@ vollständigen Inhalt. Die Quellen liegen als Leiste am unteren Rand.
   `index.template.html` ein und schreibt das Ergebnis nach `index.html`.
   **Nach jeder Änderung an `index.template.html`, `css/style.css` oder
   `js/main.js` erneut ausführen:** `python3 build.py`
-- `artifact-page.html` — aus `index.template.html` erzeugte Fassung ohne
+- `artifact-page.html` — aus `index.html` erzeugte Fassung ohne
   Dokumentrahmen für die gehostete Version. Nicht direkt öffnen.
+- `Glasfaser-Teach-In.pptx` — Foliendeck für Beamer und Abgabe
+- `deck.js` — Generator für das Foliendeck (pptxgenjs)
 
 Stand der Zahlen: 15.09.2026. Belege stehen im Popup "Quellen & Stand".
