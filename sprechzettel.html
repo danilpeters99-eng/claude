@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Sprechzettel Glasfaser</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+
+  :root {
+    --ink:      #14181F;   /* Fließtext */
+    --dim:      #5A6472;   /* Nebeninfo */
+    --teal:     #0A6E80;   /* Akzent, Abschnitte, Zahlen */
+    --teal-bg:  #E4F2F5;   /* Zahlenfeld */
+    --warm:     #9C5200;   /* Merksatz, Warnung */
+    --warm-bg:  #FBF0E2;
+    --rule:     #C9D2DA;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Bitstream Charter", "Charter", "Liberation Serif", Georgia, serif;
+    font-size: 9.5pt;
+    line-height: 1.38;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── Kopf ── */
+  .top {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 1.6pt solid var(--teal); padding-bottom: 2mm; margin-bottom: 2.8mm;
+  }
+  .top h1 {
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 15pt; margin: 0; letter-spacing: -0.2pt;
+  }
+  .top h1 span { color: var(--teal); }
+  .top .meta {
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 7.6pt; color: var(--dim); text-align: right; line-height: 1.3;
+  }
+
+  /* ── Abschnitt: schmale Randspalte + Text ── */
+  .sec {
+    display: grid; grid-template-columns: 22mm 1fr; gap: 0 4mm;
+    padding: 1.45mm 0; border-top: 0.5pt solid var(--rule);
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .sec:first-of-type { border-top: 0; padding-top: 0; }
+
+  .rail { font-family: "Liberation Sans", Arial, sans-serif; }
+  .rail .no {
+    font-size: 15pt; font-weight: bold; color: var(--teal); line-height: 1;
+  }
+  .rail .ti {
+    font-size: 8.4pt; font-weight: bold; margin-top: 0.8mm; line-height: 1.2;
+  }
+  .rail .min {
+    font-size: 7.2pt; color: var(--dim); margin-top: 0.6mm;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .say p { margin: 0 0 0.85mm; }
+  .say p:last-child { margin-bottom: 0; }
+  .say b { color: var(--teal); font-weight: bold; }
+  .say .q { font-style: italic; }
+
+  /* Aufzählung der Stationen und Schichten: eine Zeile, ein Gedanke */
+  .steps { margin: 0.5mm 0 0.9mm; padding: 0; list-style: none; }
+  .steps li { margin: 0 0 0.35mm; padding-left: 6.5mm; text-indent: -6.5mm; }
+  .steps li span.k {
+    font-family: "Liberation Sans", Arial, sans-serif; font-weight: bold;
+    color: var(--teal); display: inline-block; width: 5mm; text-indent: 0;
+  }
+
+  /* Zahl zum schnellen Greifen beim Hinunterschauen */
+  .fig {
+    font-family: "DejaVu Sans Mono", monospace; font-size: 9.2pt; font-weight: bold;
+    background: var(--teal-bg); color: var(--teal);
+    padding: 0.2mm 1.1mm; border-radius: 1mm; white-space: nowrap;
+  }
+  .note {
+    background: var(--warm-bg); border-left: 2pt solid var(--warm);
+    padding: 1.1mm 2.2mm; margin-top: 0.9mm;
+    font-size: 9pt;
+  }
+  .note b { color: var(--warm); }
+
+  /* ── Rückseite: Nachschlagen ── */
+  .back { margin-top: 4mm; }
+  .back table { break-inside: avoid; page-break-inside: avoid; }
+  .back .cols2 { break-inside: avoid; page-break-inside: avoid; }
+  .back h2 {
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 11pt; margin: 0 0 2mm; color: var(--teal);
+    border-bottom: 1.2pt solid var(--teal); padding-bottom: 1.4mm;
+  }
+  .back h3 {
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 8.4pt; margin: 2mm 0 0.9mm; letter-spacing: 0.3pt;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .back h3:first-of-type { margin-top: 0; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 8.5pt; }
+  th, td { text-align: left; padding: 0.55mm 1.4mm; border-bottom: 0.4pt solid var(--rule); }
+  th {
+    font-family: "Liberation Sans", Arial, sans-serif; font-size: 7.6pt;
+    text-transform: uppercase; letter-spacing: 0.3pt; color: var(--dim); font-weight: bold;
+  }
+  td.n { font-family: "DejaVu Sans Mono", monospace; text-align: right; font-variant-numeric: tabular-nums; }
+  tr.hero td { font-weight: bold; color: var(--teal); }
+  tr.hero td.n { color: var(--teal); }
+
+  .cols2 { column-count: 2; column-gap: 6mm; }
+  .gl { margin: 0; padding: 0; }
+  .gl div { break-inside: avoid; margin-bottom: 0.8mm; font-size: 8.2pt; line-height: 1.26; }
+  .gl dt {
+    font-family: "Liberation Sans", Arial, sans-serif; font-weight: bold;
+    font-size: 8.4pt; color: var(--teal); display: inline;
+  }
+  .gl dd { display: inline; margin: 0; color: var(--ink); }
+  .gl dd::before { content: " — "; color: var(--dim); }
+
+  .quiz { font-size: 8.8pt; }
+  .quiz li { margin-bottom: 0.9mm; }
+  .answers {
+    font-family: "DejaVu Sans Mono", monospace; font-weight: bold;
+    background: var(--teal-bg); color: var(--teal);
+    padding: 1.1mm 2.2mm; border-radius: 1mm; display: inline-block; margin-top: 0.8mm;
+    font-size: 9.2pt; letter-spacing: 0.5pt;
+  }
+  .src { font-size: 7.5pt; color: var(--dim); line-height: 1.32; margin: 0; padding-left: 4mm; }
+  .src li { margin-bottom: 0.5mm; }
+  .foot {
+    margin-top: 2.2mm; padding-top: 1.5mm; border-top: 0.5pt solid var(--rule);
+    font-family: "Liberation Sans", Arial, sans-serif; font-size: 7.2pt; color: var(--dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Glas<span>faser</span> — Sprechzettel</h1>
+  <div class="meta">
+    Teach:In · WAN-Anbindung · Anschlussart LWL<br>
+    Gesamtdauer rund 10 Minuten · Stand 15.09.2026
+  </div>
+</div>
+
+<!-- ══════════ 0 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">0</div>
+    <div class="ti">Einstieg</div>
+    <div class="min">0:30</div>
+  </div>
+  <div class="say">
+    <p>Unser Thema ist die <b>Glasfaser</b>, fachlich Lichtwellenleiter, kurz LWL. Sie ist eine von sechs Anschlussarten, die wir für das Teach:In vergleichen.</p>
+    <p>Der Unterschied zu allen anderen: Hier fließt kein Strom durch Kupfer, sondern <b>Licht durch Glas</b>. Der Leiter ist ein Haar aus Quarzglas.</p>
+    <p>Drei Zahlen vorweg: <span class="fig">10 Gbit/s</span> symmetrisch, <span class="fig">0,2 dB/km</span> Dämpfung, <span class="fig">62 %</span> der Haushalte in Deutschland sind erschlossen.</p>
+  </div>
+</div>
+
+<!-- ══════════ 1 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">1</div>
+    <div class="ti">Übertragungs&shy;strecke</div>
+    <div class="min">1:30</div>
+  </div>
+  <div class="say">
+    <p>Ich gehe die Strecke einmal ab, von uns bis ins Internet. Sechs Stationen:</p>
+    <ul class="steps">
+      <li><span class="k">1</span><b>Router und ONT</b> bei uns im Haus. Der ONT wandelt die elektrischen Signale in Lichtpulse. Ab hier ist alles Glas.</li>
+      <li><span class="k">2</span><b>Gf-AP im Keller</b>, nach etwa 20 Metern. Das ist der Übergabepunkt, hier endet das Netz des Anbieters.</li>
+      <li><span class="k">3</span><b>Netzverteiler am Gehweg</b>, rund 300 Meter. Hier werden hunderte Fasern gespleißt, also im Lichtbogen verschweißt.</li>
+      <li><span class="k">4</span><b>Passiver Splitter</b>, etwa 2 Kilometer. Er teilt eine Faser auf 32 bis 128 Kunden auf, komplett ohne Strom.</li>
+      <li><span class="k">5</span><b>PoP mit OLT</b>, rund 12 Kilometer. Das Gegenstück zum ONT, es bündelt alle Teilnehmer.</li>
+      <li><span class="k">6</span><b>Backbone</b>, ab 20 Kilometer. Über DWDM weiter zum Internetknoten, in Deutschland meist DE-CIX Frankfurt.</li>
+    </ul>
+    <p class="note"><b>Merksatz:</b> Bei FTTH liegt auf dieser ganzen Strecke kein einziges Stück Kupfer.</p>
+  </div>
+</div>
+
+<!-- ══════════ 2 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">2</div>
+    <div class="ti">Das Medium</div>
+    <div class="min">1:30</div>
+  </div>
+  <div class="say">
+    <p>Jetzt zum Kabel selbst. Von außen nach innen:</p>
+    <ul class="steps">
+      <li><span class="k">·</span><b>Außenmantel</b>, 2 bis 3 Millimeter Kunststoff. Schutz gegen Nässe, UV und Nager.</li>
+      <li><span class="k">·</span><b>Buffer mit Aramid</b>, 900 Mikrometer. Das ist die Zugentlastung, dasselbe Material wie in Schutzwesten.</li>
+      <li><span class="k">·</span><b>Coating</b>, 250 Mikrometer Lack. Verhindert Mikrorisse und hält die Faser biegsam.</li>
+      <li><span class="k">·</span><b>Mantel</b>, 125 Mikrometer Quarzglas.</li>
+      <li><span class="k">·</span><b>Kern</b>, nur <span class="fig">9 µm</span>. Hier läuft das Licht.</li>
+    </ul>
+    <p>Nur der Kern leitet, alles andere ist Schutz — er ist dünner als ein zehntel Haar. Weil Quarzglas kein Metall ist, ist die Faser <b>immun gegen elektromagnetische Störungen</b>: kein Übersprechen, kein Blitzweg, keine Erdung nötig. Das Licht läuft mit rund 200 000 Kilometern pro Sekunde.</p>
+    <p>Zwei Bauarten: <b>Singlemode</b> mit 9 µm Kern, ein Lichtweg, bis 80 Kilometer — das ist der Standard für FTTH. <b>Multimode</b> mit 50 µm, viele Lichtwege, nur bis 550 Meter — das nutzt man im Gebäude.</p>
+  </div>
+</div>
+
+<!-- ══════════ 3 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">3</div>
+    <div class="ti">Funktions&shy;weise</div>
+    <div class="min">1:30</div>
+  </div>
+  <div class="say">
+    <p>Warum bleibt das Licht überhaupt im Kern? Durch <b>Totalreflexion</b>.</p>
+    <p>Der Kern hat die Brechzahl <span class="fig">1,48</span>, der Mantel <span class="fig">1,46</span>. Dieser Unterschied von gut einem Prozent genügt schon. Trifft das Licht flach genug auf die Grenze, unter 9,4 Grad zur Faserachse, wird es <b>vollständig zurückgeworfen</b> und läuft im Zickzack weiter.</p>
+    <p>Gesendet wird mit einer <b>Laserdiode</b>, empfangen mit einer Photodiode. Genutzt werden 1310 und 1550 Nanometer, das ist Infrarot, also unsichtbar. 1550 Nanometer entsprechen etwa 193 Terahertz.</p>
+    <p>Bei der Modulation reicht meist <b>NRZ</b>: Licht an ist eine Eins, Licht aus eine Null. Für mehr Tempo nimmt man <b>PAM4</b> mit vier Helligkeitsstufen. Im Backbone arbeitet man kohärent mit Phase und Amplitude.</p>
+    <p>Der große Hebel ist <b>WDM</b>: Mehrere Farben laufen gleichzeitig durch dieselbe Faser. Bei DWDM sind das bis zu 96 Kanäle.</p>
+  </div>
+</div>
+
+<!-- ══════════ 4 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">4</div>
+    <div class="ti">FTTx-Varianten</div>
+    <div class="min">1:00</div>
+  </div>
+  <div class="say">
+    <p>FTTx sagt, wo das Glas endet und ab wo wieder Kupfer übernimmt.</p>
+    <ul class="steps">
+      <li><span class="k">·</span><b>FTTC</b> — bis zum Kabelverzweiger, dann VDSL über Kupfer. Damit ist bei etwa 250 Mbit/s Schluss.</li>
+      <li><span class="k">·</span><b>FTTdp</b> — bis kurz vors Haus, die letzten Meter mit G.fast. In Deutschland selten.</li>
+      <li><span class="k">·</span><b>FTTB</b> — bis in den Keller, im Haus dann Kupfer. Häufig im Mehrfamilienhaus.</li>
+      <li><span class="k">·</span><b>FTTH</b> — bis ins Büro. Volle Leistung, und unser Ziel für das Teach:In.</li>
+    </ul>
+    <p>Dann gibt es noch zwei Netzformen. <b>PON</b> teilt eine Faser per Splitter auf viele Kunden auf: günstig, stromlos im Feld, deshalb Standard im Massenausbau. XGS-PON liefert 10 Gbit/s symmetrisch.</p>
+    <p><b>P2P</b> gibt jedem Kunden eine eigene Faser: garantierte Bandbreite, dafür deutlich teurer. Das ist die Variante für Geschäftskunden mit Service-Level-Vereinbarung.</p>
+  </div>
+</div>
+
+<!-- ══════════ 5 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">5</div>
+    <div class="ti">Zahlen im Vergleich</div>
+    <div class="min">1:00</div>
+  </div>
+  <div class="say">
+    <p>Jetzt der Vergleich mit den anderen fünf Anschlussarten, Download und Upload in Mbit/s:</p>
+    <p>Glasfaser <span class="fig">10 000 / 10 000</span> · Richtfunk <span class="fig">1000 / 1000</span> · Kabel <span class="fig">1000 / 50</span> · 5G <span class="fig">500 / 100</span> · DSL <span class="fig">250 / 40</span> · Satellit <span class="fig">200 / 20</span></p>
+    <p class="note"><b>Der Kernsatz:</b> Entscheidend ist die zweite Zahl, der Upload. Nur Glasfaser und Richtfunk sind symmetrisch. Kabel liefert zwar ein Gigabit herunter, aber nur 50 Mbit/s zurück.</p>
+    <p>Genutzt werden rund 190 bis 230 Terahertz, nutzbar wären etwa 50 Terahertz Bandbreite. Die Latenz liegt bei 1 bis 5 Millisekunden.</p>
+  </div>
+</div>
+
+<!-- ══════════ 6 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">6</div>
+    <div class="ti">Vor- und Nachteile</div>
+    <div class="min">1:00</div>
+  </div>
+  <div class="say">
+    <p><b>Dafür spricht:</b> symmetrische Gigabit-Raten; später aufrüstbar, ohne neu zu graben, weil nur die Endgeräte getauscht werden; große Reichweite ohne Verstärker; immun gegen Störungen; und eine Lebensdauer über 30 Jahre.</p>
+    <p><b>Dagegen spricht:</b> Der Tiefbau ist teuer und langsam, die Verfügbarkeit hängt an der einzelnen Adresse; bis zum Hausanschluss vergehen oft Monate; die Faser ist empfindlich beim Verlegen, Biegeradius und Staub am Stecker sind kritisch; und der ONT braucht Strom, ohne Notstrom steht bei Stromausfall alles.</p>
+  </div>
+</div>
+
+<!-- ══════════ 7 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">7</div>
+    <div class="ti">Verfügbarkeit</div>
+    <div class="min">0:45</div>
+  </div>
+  <div class="say">
+    <p>In Deutschland sind <span class="fig">62 %</span> der Haushalte erschlossen, Stand Juni 2026. Gebucht haben aber nur <span class="fig">27 %</span> davon — das nennt man Take-up-Rate. Es liegt also viel mehr Glas, als genutzt wird.</p>
+    <p>In Berlin sind <span class="fig">53,4 %</span> versorgt, ein Plus von 12,6 Punkten in einem Jahr. Die Telekom hat hier eine Million Anschlüsse und will bis 2030 auf zwei Millionen kommen.</p>
+    <p>Für uns zählt aber nur die eine Adresse. Prüfen kann man das im <b>Gigabit-Grundbuch des Bundes</b>, bei den Anbietern direkt, und über die Hausverwaltung: Sitzt im Keller schon ein Gf-AP?</p>
+  </div>
+</div>
+
+<!-- ══════════ 8 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">8</div>
+    <div class="ti">Kosten</div>
+    <div class="min">0:45</div>
+  </div>
+  <div class="say">
+    <p>Laufend kostet ein Privatanschluss <span class="fig">46–71 €</span> im Monat, dazu einmalig 69,95 Euro Bereitstellung. Ein Geschäftstarif mit fester IP liegt bei etwa <span class="fig">50–120 €</span> netto. Eine echte Standleitung mit Service-Level beginnt bei <span class="fig">300 €</span> und wird oft vierstellig.</p>
+    <p class="note"><b>Wichtigster Punkt:</b> Der Hausanschluss kostet <b>0 Euro</b>, solange die Vorvermarktung läuft. Bestellt man erst, wenn die Straße fertig ist, werden 800 bis 2 500 Euro fällig.</p>
+  </div>
+</div>
+
+<!-- ══════════ 9 ══════════ -->
+<div class="sec">
+  <div class="rail">
+    <div class="no">9</div>
+    <div class="ti">Fazit</div>
+    <div class="min">0:30</div>
+  </div>
+  <div class="say">
+    <p>Für ein Schulungs- und Testzentrum ist Glasfaser die richtige Wahl, und zwar wegen des Uploads. Wir laden VM-Images hoch, spielen Backups zurück und halten Videokonferenzen. Genau da hängt Glasfaser alle anderen ab.</p>
+    <p>Das Risiko ist nicht die Technik, sondern der Termin. Deshalb meine Empfehlung: <b>Adresse früh prüfen, in der Vorvermarktung bestellen</b> und einen Kabel- oder 5G-Anschluss als Rückfallebene einplanen.</p>
+    <p>Vielen Dank. Gibt es Fragen?</p>
+  </div>
+</div>
+
+<!-- ══════════════════ RÜCKSEITE ══════════════════ -->
+<div class="back">
+  <h2>Rückseite — falls jemand nachfragt</h2>
+
+  <h3>Alle Raten auf einen Blick</h3>
+  <table>
+    <tr><th>Anschlussart</th><th>Technik</th><th style="text-align:right">Down</th><th style="text-align:right">Up</th><th>Latenz</th></tr>
+    <tr class="hero"><td>Glasfaser</td><td>FTTH, XGS-PON</td><td class="n">10 000</td><td class="n">10 000</td><td>1–5 ms</td></tr>
+    <tr><td>Richtfunk</td><td>lizenziert, PtP</td><td class="n">1 000</td><td class="n">1 000</td><td>1–3 ms</td></tr>
+    <tr><td>Kabel</td><td>DOCSIS 3.1</td><td class="n">1 000</td><td class="n">50</td><td>10–30 ms</td></tr>
+    <tr><td>5G</td><td>Mobilfunk, geteilt</td><td class="n">500</td><td class="n">100</td><td>10–40 ms</td></tr>
+    <tr><td>DSL</td><td>VDSL 250 Vectoring</td><td class="n">250</td><td class="n">40</td><td>10–30 ms</td></tr>
+    <tr><td>Satellit</td><td>LEO, Starlink</td><td class="n">200</td><td class="n">20</td><td>25–60 ms</td></tr>
+  </table>
+  <p style="font-size:7.8pt;color:var(--dim);margin:1.2mm 0 0">Angaben in Mbit/s, typische Maximalwerte. Satellit über geostationäre Bahn liegt bei rund 600 ms Latenz.</p>
+
+  <h3>Begriffe, die erfahrungsgemäß kommen</h3>
+  <div class="cols2">
+    <dl class="gl">
+      <div><dt>ONT</dt><dd>Glasfaser-Modem beim Kunden, wandelt elektrisch in optisch</dd></div>
+      <div><dt>OLT</dt><dd>Gegenstück im PoP des Anbieters, bündelt hunderte ONTs</dd></div>
+      <div><dt>Gf-AP</dt><dd>Glasfaser-Abschlusspunkt, die Übergabedose im Keller</dd></div>
+      <div><dt>PON</dt><dd>Passives Netz, eine Faser per Splitter auf 32 bis 128 Kunden</dd></div>
+      <div><dt>P2P</dt><dd>Punkt zu Punkt, eigene Faser je Kunde mit garantierter Rate</dd></div>
+      <div><dt>Splitter</dt><dd>Passiver Glaskörper, teilt Licht ohne Strom auf</dd></div>
+      <div><dt>Spleißen</dt><dd>Verschweißen zweier Fasern im Lichtbogen, Verlust unter 0,1 dB</dd></div>
+      <div><dt>Dämpfung</dt><dd>Signalverlust je Kilometer, bei 1550 nm rund 0,2 dB</dd></div>
+      <div><dt>Brechzahl</dt><dd>Wie stark ein Stoff Licht bremst, Kern 1,48 und Mantel 1,46</dd></div>
+      <div><dt>DWDM</dt><dd>Bis 96 Wellenlängen gleichzeitig auf einer Faser</dd></div>
+      <div><dt>Take-up-Rate</dt><dd>Anteil der erschlossenen Haushalte mit Vertrag, in DE 27 %</dd></div>
+      <div><dt>BKZ</dt><dd>Baukostenzuschuss außerhalb der regulären Ausbauphase</dd></div>
+    </dl>
+  </div>
+
+  <h3>Quiz fürs Plenum — Auflösung</h3>
+  <p style="font-size:8.6pt;margin:0 0 1mm">Die fünf Fragen stehen auf der Folie. Reihenfolge der richtigen Antworten:</p>
+  <div class="answers">1 b · 2 b · 3 b · 4 c · 5 c</div>
+
+  <h3>Quellen</h3>
+  <p class="src" style="padding-left:0">
+    BREKO Marktanalyse 2026 (02.09.2026) · Senatsverwaltung für Wirtschaft, Energie und Betriebe Berlin,
+    Gigabit-Strategie, PM 04.03.2026 · Deutsche Telekom, Eine Million Glasfaser-Anschlüsse in Berlin, Mai 2026 ·
+    dslweb.de und kostenlupe.de, Tarife und Anschlusskosten, abgerufen 15.09.2026 ·
+    ITU-T G.984, G.9807.1, G.9804, G.652 · BMDV Gigabit-Grundbuch · FTTH Council Europe, Market Panorama 2026 ·
+    Elektronik-Kompendium, Lichtwellenleiter und FTTx.
+  </p>
+
+  <div class="foot">
+    Sprechzettel zur Präsentation „Glasfaser für Teach:In" · Modul WAN-Anbindung · Anschlussart LWL · Stand 15.09.2026
+  </div>
+</div>
+
+</body>
+</html>

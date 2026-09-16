@@ -64,6 +64,20 @@ npm install pptxgenjs
 node deck.js
 ```
 
+## Sprechzettel zum Ablesen
+
+`Sprechzettel-Glasfaser.pdf` ist ein Blatt A4, Vorder- und Rückseite, zum
+Ausdrucken und Mitnehmen ans Pult.
+
+Die Vorderseite ist der Vortrag in zehn Abschnitten, in kurzen Sätzen zum
+Vorlesen, mit Zeitangabe je Abschnitt und farbig hinterlegten Zahlen zum
+schnellen Finden. Die Rückseite ist zum Nachschlagen: alle Raten im
+Vergleich, die Begriffe, nach denen erfahrungsgemäß gefragt wird, die
+Quiz-Auflösung und die Quellen.
+
+Quelle ist `sprechzettel.html`, erzeugt wird das PDF mit
+`node sprechzettel-pdf.js` (braucht playwright).
+
 ## Dateien
 
 - `index.html` — **ausgeliefertes Ergebnis.** Einzelne, eigenständige Datei
@@ -82,5 +96,7 @@ node deck.js
   Dokumentrahmen für die gehostete Version. Nicht direkt öffnen.
 - `Glasfaser-Teach-In.pptx` — Foliendeck für Beamer und Abgabe
 - `deck.js` — Generator für das Foliendeck (pptxgenjs)
+- `Sprechzettel-Glasfaser.pdf` — ein Blatt zum Ablesen beim Vortrag
+- `sprechzettel.html` / `sprechzettel-pdf.js` — Quelle und Generator dafür
 
 Stand der Zahlen: 15.09.2026. Belege stehen im Popup "Quellen & Stand".
